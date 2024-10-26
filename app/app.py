@@ -15,7 +15,8 @@ def create_app():
     
     @app.route('/currency')
     def json_currency():
-        return exchange_rate()
+        country = os.environ.get("COUNTRY")
+        return exchange_rate(country)
 
     return app
 
