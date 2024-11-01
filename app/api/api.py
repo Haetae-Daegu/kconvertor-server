@@ -1,10 +1,23 @@
 import requests, os
+from flask import Blueprint, render_template
 
-def exchange_rate(country):
+api_bp = Blueprint("api_bp", __name__)
+
+
+
+#                    )
+# @app.route('/currency')
+#     def json_currency():
+#         country = os.environ.get("COUNTRY")
+#         return exchange_rate(country)
+
+@api_bp.route('/currency/')
+def exchange_rate(country="EUR"):
     api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
     url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{country}"
     response = requests.get(url)
     data = response.json()
+    #TODO: Create function to handle error for requests
 
     conversion_rate = data["conversion_rates"]
     obj_dict = get_countries(data["base_code"], conversion_rate)
