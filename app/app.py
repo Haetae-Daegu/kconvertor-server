@@ -1,5 +1,5 @@
 from app.api.api import *
-from flask import Flask, request, jsonify
+from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
 
 SWAGGER_URL="/swagger"
@@ -24,7 +24,6 @@ def create_app():
     
     #register blueprint
     app.register_blueprint(api_bp)
-    # app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
     #routes
 
