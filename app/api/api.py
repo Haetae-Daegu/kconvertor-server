@@ -1,5 +1,5 @@
 import requests, os
-from flask import Blueprint, render_template
+from flask import Blueprint
 
 api_bp = Blueprint("api_bp", __name__)
 
