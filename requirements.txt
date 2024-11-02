@@ -2,4 +2,3 @@ requests
 pytest
 flask
 flask_swagger_ui
-os
