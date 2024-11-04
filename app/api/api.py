@@ -5,14 +5,13 @@ api_bp = Blueprint("api_bp", __name__)
 
 
 
-#                    )
-# @app.route('/currency')
-#     def json_currency():
-#         country = os.environ.get("COUNTRY")
-#         return exchange_rate(country)
 
 @api_bp.route('/currency/')
-def exchange_rate(country="EUR"):
+def json_currency():
+    country = os.environ.get("COUNTRY")
+    return exchange_rate(country)
+
+def exchange_rate(country="USD"):
     api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
     url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{country}"
     response = requests.get(url)

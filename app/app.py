@@ -2,8 +2,7 @@ from app.api.api import *
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
 
-SWAGGER_URL="/swagger"
-#Note: We can't provide any custom file path for swagger.json
+SWAGGER_URL="/apidocs"
 API_URL="/static/swagger.json"
 
 swagger_ui_blueprint = get_swaggerui_blueprint(
@@ -15,25 +14,20 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
 )
 
 def create_app():
-    #config
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
-    
-    #register blueprint
+    app.register_blueprint(swagger_ui_blueprint)
     app.register_blueprint(api_bp)
 
-    #routes
-
     @app.route("/")
-    def spec():
-        return "Hello"
-
-    @app.route('/hello')
-    def hello():
-        return 'Hello, World!'
+    def list_routes():
+        routes = []
+        for rule in app.url_map.iter_rules():
+            routes.append('%s' % rule)
+        return routes
 
     return app
 
