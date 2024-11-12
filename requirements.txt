@@ -2,3 +2,4 @@ requests
 pytest
 flask
 flask_swagger_ui
+requests_mock
