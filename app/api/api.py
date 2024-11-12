@@ -1,5 +1,5 @@
 import requests, os
-from __init__ import FROM_COUNTRY, TO_COUNTRY
+from app.api import FROM_COUNTRY, TO_COUNTRY
 from flask import Blueprint
 
 api_bp = Blueprint("api_bp", __name__)
