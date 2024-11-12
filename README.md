@@ -1,16 +1,11 @@
 
 # Kconvertor-server
 
-Backend server of Korean Convertor project.
+Backend server of Korean Convertor project
+
+Using [ExchangeRateAPI](https://www.exchangerate-api.com/)
 
 ## Run Locally
-
-Clone the project
-
-```bash
-  git clone https://link-to-project
-```
-
 Go to the project directory
 
 ```bash
@@ -20,7 +15,8 @@ Go to the project directory
 Install dependencies
 
 ```bash
-  npm install
+pip install
+pip update
 ```
 
 Start the server
