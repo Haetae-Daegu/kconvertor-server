@@ -12,16 +12,19 @@ def json_currency():
 
 def exchange_rate(country="EUR"):
     api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
-    url = f"{API_URL} + {api_key}/latest/{country}"
+    url = f"{API_URL}{api_key}/latest/{country}"
+    
     try:
         response = requests.get(url)
+        if response.status_code == 403:
+            return "Error 403: Forbidden. Access to the API is denied"
+    
         data = response.json()
         conversion_rate = data["conversion_rates"]
         obj_dict = get_countries(data["base_code"], conversion_rate)
         return obj_dict
     except requests.exceptions.RequestException as err:
-        print(f"Error: {err}")
-        return err
+        return f"Error: {err}"
 
 def get_countries(base_code, conversion_rate):
     dict = {}
