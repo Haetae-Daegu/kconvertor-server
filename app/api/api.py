@@ -45,12 +45,12 @@ def get_exchange_rate(
     to_currency: CountryCode,
     from_currency: CountryCode = "EUR",
 ) -> ExchangeRate:
-    conversion_rates = exchange_rate_repository.get_exchange_rate_for_country(
+    exchange_rate = exchange_rate_repository.get_exchange_rate_for_country(
         to_currency=to_currency, base_currency=from_currency
     )
 
     return ExchangeRate(
         from_currency=from_currency,
         to_currency=to_currency,
-        conversion_rate=conversion_rates[to_currency],
+        conversion_rate=exchange_rate[to_currency],
     )
