@@ -11,6 +11,7 @@ class CountryCode(str):
 
         return value
 
+
 class CurrencyRate(float):
 
     def __new__(cls, value: float) -> "CurrencyRate":

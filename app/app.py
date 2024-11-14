@@ -1,7 +1,9 @@
-from app.api.api import *
+import os
+
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
-import os
+
+from app.api.api import *
 
 SWAGGER_URL = "/apidocs"
 API_URL = "/static/swagger.json"

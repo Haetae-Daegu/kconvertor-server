@@ -27,7 +27,9 @@ class ExchangeRateRepository:
         self.url = f"{api_url}{api_key}/latest/"
         self.request_handler = request_handler
 
-    def get_exchange_rate_for_country(self, to_currency: CountryCode, base_currency: CountryCode = "EUR") -> Dict[CountryCode, CurrencyRate]:
+    def get_exchange_rate_for_country(
+        self, to_currency: CountryCode, base_currency: CountryCode = "EUR"
+    ) -> Dict[CountryCode, CurrencyRate]:
         try:
             response = self.request_handler.get(f"{self.url}{base_currency}")
 
@@ -36,11 +38,12 @@ class ExchangeRateRepository:
             if response.status_code >= 500:
                 raise self.UnexpectedResponseError("Unexpected response from API")
             if response.status_code == 404:
-                raise self.CurrencyNotFoundError(f"Currency code {to_currency} not found")
+                raise self.CurrencyNotFoundError(
+                    f"Currency code {to_currency} not found"
+                )
 
             data = response.json()
             conversion_rate = data["conversion_rates"]
-
 
             try:
                 return {
@@ -48,10 +51,13 @@ class ExchangeRateRepository:
                     to_currency: CurrencyRate(conversion_rate[to_currency]),
                 }
             except KeyError:
-                raise self.TargetCurrencyNotFoundError(f"Currency code {to_currency} not found")
+                raise self.TargetCurrencyNotFoundError(
+                    f"Currency code {to_currency} not found"
+                )
             except ValueError:
-                raise self.UnexpectedResponseError(f"Currency rate received from remote repository is not a valid rate")
+                raise self.UnexpectedResponseError(
+                    f"Currency rate received from remote repository is not a valid rate"
+                )
 
         except requests.exceptions.RequestException as err:
             raise self.RequestHandlerError(err)
-

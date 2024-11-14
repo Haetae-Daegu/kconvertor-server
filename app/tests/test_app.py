@@ -1,7 +1,8 @@
 import pytest
 import requests
-from app.tests.conftest import client
+
 from app.api import API_URL
+from app.tests.conftest import client
 
 country = "EUR"
 FAKE_API_KEY = "fake_api_key"
