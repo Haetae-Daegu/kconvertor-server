@@ -10,6 +10,7 @@ def client():
     with app.test_client() as client:
         yield client
 
+
 @pytest.fixture
 def mock_requests():
     with requests_mock.Mocker() as mock:
