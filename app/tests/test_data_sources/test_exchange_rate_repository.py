@@ -139,3 +139,22 @@ class TestExchangeRateRepository:
             exchange_rate_repository.get_exchange_rate_for_country(
                 target_currency_to_convert, base_currency
             )
+
+
+    def test_should_raise_when_conversion_rates_are_missing_from_response(self, fake_request_handler):
+        base_currency = CountryCode("USD")
+        target_currency_to_convert = CountryCode("AUD")
+
+        fake_request_handler.get.return_value.json.return_value = {
+            "result": "success",
+        }
+        fake_request_handler.get.return_value.status_code = 200
+
+        exchange_rate_repository = ExchangeRateRepository(
+            "", "", request_handler=fake_request_handler
+        )
+
+        with pytest.raises(ExchangeRateRepository.UnexpectedResponseError):
+            exchange_rate_repository.get_exchange_rate_for_country(
+                target_currency_to_convert, base_currency
+            )

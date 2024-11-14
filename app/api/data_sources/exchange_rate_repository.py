@@ -42,7 +42,13 @@ class ExchangeRateRepository:
                 )
 
             data = response.json()
-            conversion_rate = data["conversion_rates"]
+
+            conversion_rate = data.get("conversion_rates")
+
+            if not conversion_rate:
+                raise self.UnexpectedResponseError(
+                    "Conversion rates not found for the given currency"
+                )
 
             try:
                 return {
