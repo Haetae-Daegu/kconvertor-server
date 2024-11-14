@@ -26,8 +26,11 @@ def json_currency():
         return jsonify({"code": 400, "message": f"Invalid country code : {err}"})
     except ExchangeRateRepository.ForbiddenAccessError as err:
         return jsonify({"code": 403, "message": f"Forbidden: {err}"})
-    except ExchangeRateRepository.UnexpectedResponseError as err:
+    except (ExchangeRateRepository.CurrencyNotFoundError, ExchangeRateRepository.TargetCurrencyNotFoundError) as err:
+        return jsonify({"code": 404, "message": f"Currency not found: {err}"})
+    except (ExchangeRateRepository.UnexpectedResponseError, ExchangeRateRepository.RequestHandlerError) as err:
         return jsonify({"code": 500, "message": f"Internal Server Error: {err}"})
+
 
     return jsonify(exchange_rate)
 
