@@ -140,8 +140,9 @@ class TestExchangeRateRepository:
                 target_currency_to_convert, base_currency
             )
 
-
-    def test_should_raise_when_conversion_rates_are_missing_from_response(self, fake_request_handler):
+    def test_should_raise_when_conversion_rates_are_missing_from_response(
+        self, fake_request_handler
+    ):
         base_currency = CountryCode("USD")
         target_currency_to_convert = CountryCode("AUD")
 

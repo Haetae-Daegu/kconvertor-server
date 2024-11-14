@@ -28,6 +28,7 @@ def create_app():
         for rule in app.url_map.iter_rules():
             routes.append("%s" % rule)
         return routes
+
     return app
 
 
