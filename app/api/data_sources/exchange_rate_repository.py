@@ -23,15 +23,14 @@ class ExchangeRateRepository:
         pass
 
     def __init__(self, api_url: str, api_key: str, request_handler=requests):
-        self.api_key = api_key
-        self.url = f"{api_url}{api_key}/latest/"
+        self.base_url = f"{api_url}{api_key}/latest/"
         self.request_handler = request_handler
 
     def get_exchange_rate_for_country(
         self, to_currency: CountryCode, base_currency: CountryCode = "EUR"
     ) -> Dict[CountryCode, CurrencyRate]:
         try:
-            response = self.request_handler.get(f"{self.url}{base_currency}")
+            response = self.request_handler.get(f"{self.base_url}{base_currency}")
 
             if response.status_code == 403:
                 raise self.ForbiddenAccessError("Access to the API is denied")
