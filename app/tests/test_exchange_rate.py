@@ -8,6 +8,7 @@ from app.api.api import (
     ExchangeRateRepository,
     get_exchange_rate,
 )
+from app.api.types import CurrencyRate
 
 
 @pytest.fixture
@@ -22,7 +23,7 @@ class TestExchangeRate:
     def test_should_return_exchange_rate_for_country_provided(
         self, fake_exchange_rate_repository: ExchangeRateRepository
     ):
-        expected_rate = 1485.9695
+        expected_rate = CurrencyRate(2.0)
 
         expected_conversion = ExchangeRate(
             from_currency=CountryCode("EUR"),
