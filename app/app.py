@@ -26,10 +26,13 @@ def create_app():
             routes.append("%s" % rule)
         return routes
 
+    @app.errorhandler(APIError)
+    def handle_api_error(error):
+        return error.to_response()
+
     return app
 
 
 if __name__ == "__main__":
     app = create_app()
     app.run()
-    print("Launching app")

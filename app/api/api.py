@@ -1,5 +1,6 @@
 import requests, os
-from app.api import FROM_COUNTRY, TO_COUNTRY, API_URL
+from app.api import FROM_CURRENCY, TO_CURRENCY, API_URL
+from app.error import APIError
 from flask import Blueprint
 
 api_bp = Blueprint("api_bp", __name__)
@@ -7,7 +8,7 @@ api_bp = Blueprint("api_bp", __name__)
 
 @api_bp.route("/currency/")
 def json_currency():
-    country = FROM_COUNTRY
+    country = FROM_CURRENCY
     return exchange_rate(country)
 
 
@@ -18,18 +19,19 @@ def exchange_rate(country="EUR"):
     try:
         response = requests.get(url)
         if response.status_code == 403:
-            return "Error 403: Forbidden. Access to the API is denied"
+            raise APIError(403, "Forbidden: Access to the API is denied")
 
         data = response.json()
         conversion_rate = data["conversion_rates"]
-        obj_dict = get_countries(data["base_code"], conversion_rate)
-        return obj_dict
+
+        return get_conversion_rate(conversion_rate)
+
     except requests.exceptions.RequestException as err:
-        return f"Error: {err}"
+        raise APIError(500, f"Connection Error: {err}")
 
 
-def get_countries(base_code, conversion_rate):
-    dict = {}
-    dict[base_code] = conversion_rate[base_code]
-    dict[TO_COUNTRY] = conversion_rate[TO_COUNTRY]
-    return dict
+def get_conversion_rate(conversion_rate):
+    return {
+        FROM_CURRENCY: conversion_rate[FROM_CURRENCY],
+        TO_CURRENCY: conversion_rate[TO_CURRENCY],
+    }

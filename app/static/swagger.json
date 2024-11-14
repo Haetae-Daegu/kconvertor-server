@@ -14,6 +14,9 @@
             "responses": {
               "200": {
                 "description": "Successful operation"
+              },
+              "403": {
+                "description": "Forbidden: Access to the API is denied"
               }
             }
           }
