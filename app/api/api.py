@@ -36,11 +36,7 @@ def json_currency():
 
 
 def get_exchange_rate(exchange_rate_repository: ExchangeRateRepository, to_currency: CountryCode, from_currency: CountryCode="EUR") -> ExchangeRate:
-    """
-    >>> get_exchange_rate()
-    {'from_currency': 'EUR', 'to_currency': 'KRW', 'conversion_rate': 1485.9695}
-    """
-    conversion_rates = exchange_rate_repository.get_exchange_rate_for_country(from_currency)
+    conversion_rates = exchange_rate_repository.get_exchange_rate_for_country(to_currency=to_currency, base_currency=from_currency)
 
     return ExchangeRate(
         from_currency=from_currency,

@@ -2,7 +2,7 @@ from typing import Dict
 
 import requests
 
-from app.api.types import CountryCode
+from app.api.types import CountryCode, CurrencyRate
 
 
 class ExchangeRateRepository:
@@ -27,7 +27,7 @@ class ExchangeRateRepository:
         self.url = f"{api_url}{api_key}/latest/"
         self.request_handler = request_handler
 
-    def get_exchange_rate_for_country(self, to_currency: CountryCode, base_currency: CountryCode = "EUR") -> Dict[CountryCode, float]:
+    def get_exchange_rate_for_country(self, to_currency: CountryCode, base_currency: CountryCode = "EUR") -> Dict[CountryCode, CurrencyRate]:
         try:
             response = self.request_handler.get(f"{self.url}{base_currency}")
 
@@ -44,11 +44,13 @@ class ExchangeRateRepository:
 
             try:
                 return {
-                    base_currency: conversion_rate[base_currency],
-                    to_currency: conversion_rate[to_currency],
+                    base_currency: CurrencyRate(conversion_rate[base_currency]),
+                    to_currency: CurrencyRate(conversion_rate[to_currency]),
                 }
             except KeyError:
                 raise self.TargetCurrencyNotFoundError(f"Currency code {to_currency} not found")
+            except ValueError:
+                raise self.UnexpectedResponseError(f"Currency rate received from remote repository is not a valid rate")
 
         except requests.exceptions.RequestException as err:
             raise self.RequestHandlerError(err)

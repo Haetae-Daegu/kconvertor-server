@@ -88,3 +88,26 @@ class TestExchangeRateRepository:
 
         with pytest.raises(ExchangeRateRepository.TargetCurrencyNotFoundError):
             exchange_rate_repository.get_exchange_rate_for_country(target_currency_to_convert, base_currency)
+
+
+    @pytest.mark.parametrize("invalid_rate", [
+        pytest.param("invalid_rate", id="when rate is a string"),
+        pytest.param(-1.0, id="when rate is negative"),
+    ])
+    def test_should_raise_when_conversion_rate_is_not_a_valid_rate(self, fake_request_handler, invalid_rate):
+        base_currency = CountryCode("USD")
+        target_currency_to_convert = CountryCode("AUD")
+
+        fake_request_handler.get.return_value.json.return_value = {
+            "result": "success",
+            "conversion_rates": {
+                base_currency: 1,
+                target_currency_to_convert: invalid_rate
+            }
+        }
+        fake_request_handler.get.return_value.status_code = 200
+
+        exchange_rate_repository = ExchangeRateRepository("", "", request_handler=fake_request_handler)
+
+        with pytest.raises(ExchangeRateRepository.UnexpectedResponseError):
+            exchange_rate_repository.get_exchange_rate_for_country(target_currency_to_convert, base_currency)
