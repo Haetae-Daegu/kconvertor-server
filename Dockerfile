@@ -14,5 +14,4 @@ ENV FLASK_RUN_PORT=5000
 
 EXPOSE 5000
 
-CMD ["flask", "run"]  
-# Remplace "app.py" par le nom du fichier principal de ton application
+CMD ["flask", "run"]
