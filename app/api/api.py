@@ -1,37 +1,56 @@
-import requests, os
-from app.api import FROM_CURRENCY, TO_CURRENCY, API_URL
-from app.error import APIError
-from flask import Blueprint
+import os
+
+from flask import Blueprint, jsonify
+
+from app.api import API_URL, FROM_CURRENCY
+from app.api.data_sources.exchange_rate_repository import ExchangeRateRepository
+from app.api.types import CountryCode, ExchangeRate
 
 api_bp = Blueprint("api_bp", __name__)
 
 
 @api_bp.route("/currency/")
 def json_currency():
-    country = FROM_CURRENCY
-    return exchange_rate(country)
-
-
-def exchange_rate(country="EUR"):
-    api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
-    url = f"{API_URL}{api_key}/latest/{country}"
 
     try:
-        response = requests.get(url)
-        if response.status_code == 403:
-            raise APIError(403, "Forbidden: Access to the API is denied")
+        country = CountryCode(FROM_CURRENCY)
 
-        data = response.json()
-        conversion_rate = data["conversion_rates"]
+        api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
+        url = f"{API_URL}{api_key}/latest/{country}"
 
-        return get_conversion_rate(conversion_rate)
+        exchange_rate_repository = ExchangeRateRepository(url, api_key)
 
-    except requests.exceptions.RequestException as err:
-        raise APIError(500, f"Connection Error: {err}")
+        exchange_rate = get_exchange_rate(exchange_rate_repository, country)
+
+    except ValueError as err:
+        return jsonify({"code": 400, "message": f"Invalid country code : {err}"})
+    except ExchangeRateRepository.ForbiddenAccessError as err:
+        return jsonify({"code": 403, "message": f"Forbidden: {err}"})
+    except (
+        ExchangeRateRepository.CurrencyNotFoundError,
+        ExchangeRateRepository.TargetCurrencyNotFoundError,
+    ) as err:
+        return jsonify({"code": 404, "message": f"Currency not found: {err}"})
+    except (
+        ExchangeRateRepository.UnexpectedResponseError,
+        ExchangeRateRepository.RequestHandlerError,
+    ) as err:
+        return jsonify({"code": 500, "message": f"Internal Server Error: {err}"})
+
+    return jsonify(exchange_rate)
 
 
-def get_conversion_rate(conversion_rate):
-    return {
-        FROM_CURRENCY: conversion_rate[FROM_CURRENCY],
-        TO_CURRENCY: conversion_rate[TO_CURRENCY],
-    }
+def get_exchange_rate(
+    exchange_rate_repository: ExchangeRateRepository,
+    to_currency: CountryCode,
+    from_currency: CountryCode = "EUR",
+) -> ExchangeRate:
+    exchange_rate = exchange_rate_repository.get_exchange_rate_for_country(
+        to_currency=to_currency, base_currency=from_currency
+    )
+
+    return ExchangeRate(
+        from_currency=from_currency,
+        to_currency=to_currency,
+        conversion_rate=exchange_rate[to_currency],
+    )

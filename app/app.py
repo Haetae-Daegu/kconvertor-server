@@ -1,6 +1,9 @@
-from app.api.api import *
+import os
+
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
+
+from app.api.api import *
 
 SWAGGER_URL = "/apidocs"
 API_URL = "/static/swagger.json"
@@ -25,10 +28,6 @@ def create_app():
         for rule in app.url_map.iter_rules():
             routes.append("%s" % rule)
         return routes
-
-    @app.errorhandler(APIError)
-    def handle_api_error(error):
-        return error.to_response()
 
     return app
 
