@@ -6,10 +6,42 @@
     },
     "paths": {
         "/currency": {
-          "get": {
+          "post": {
             "description": "Returns a dict containing the conversion between euros to Korean wons",
             "produces": [
               "application/json"
+            ],
+            "parameters": [
+              {
+                "in": "body",
+                "name": "body",
+                "required": true,
+                "description": "Country for which the conversion rate is requested.",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "from_currency": {
+                      "type": "string"
+                    },
+                    "to_currency": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "float"
+                    }
+                  },
+                  "required": [
+                    "from_currency",
+                    "to_currency",
+                    "amount"
+                  ],
+                  "example": {
+                    "from_currency": "EUR",
+                    "to_currency": "KRW",
+                    "amount": 1
+                  }
+                }
+              }
             ],
             "responses": {
               "200": {
