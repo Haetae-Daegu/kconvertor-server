@@ -12,6 +12,10 @@ def json_currency():
     from_currency = request.json["from_currency"]
     to_currency = request.json["to_currency"]
     amount = request.json["amount"]
+
+    if not from_currency or not to_currency or amount is None:
+        return APIError(400, f"error: Missing required parameters")
+
     return exchange_rate(from_currency, to_currency, amount)
 
 
@@ -21,7 +25,7 @@ def exchange_rate(from_currency: str = "EUR", to_currency:str = "KRW", amount:fl
 
     try:
         response = requests.get(url)
-        if response.status_code == 403:
+        if response.status_code == 500:
             raise APIError(403, "Forbidden: Access to the API is denied")
 
         data = response.json()
