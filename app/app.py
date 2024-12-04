@@ -10,11 +10,12 @@ swagger_ui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL, API_URL, config={"app_name": "Access API"}
 )
 
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
     CORS(app)
-    
+
     app.config.from_mapping(
         SECRET_KEY="dev",
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),

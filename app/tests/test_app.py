@@ -19,14 +19,18 @@ def test_create_app(client):
     response = client.get("/")
     assert response.status_code == 200
 
+
 def test_currency_route_connection_error(client, mock_requests):
     url = f"{API_URL}{FAKE_API_KEY}/pair/{from_currency}/{to_currency}/{amount}"
     mock_requests.get(url, exc=requests.exceptions.ConnectionError)
-    response = client.post("/currency/", json={
-        "from_currency": from_currency,
-        "to_currency": to_currency,
-        "amount": amount
-    })
+    response = client.post(
+        "/currency/",
+        json={
+            "from_currency": from_currency,
+            "to_currency": to_currency,
+            "amount": amount,
+        },
+    )
 
     assert response.status_code == 500
     assert "Error" in response.get_data(as_text=True)

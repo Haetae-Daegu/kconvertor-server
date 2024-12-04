@@ -6,9 +6,9 @@ from flask import Blueprint, request
 api_bp = Blueprint("api_bp", __name__)
 
 
-@api_bp.route("/currency/", methods=['POST'])
+@api_bp.route("/currency/", methods=["POST"])
 def json_currency():
-    print(request.json)    
+    print(request.json)
     from_currency = request.json["from_currency"]
     to_currency = request.json["to_currency"]
     amount = request.json["amount"]
@@ -19,7 +19,9 @@ def json_currency():
     return exchange_rate(from_currency, to_currency, amount)
 
 
-def exchange_rate(from_currency: str = "EUR", to_currency:str = "KRW", amount:float = 1):
+def exchange_rate(
+    from_currency: str = "EUR", to_currency: str = "KRW", amount: float = 1
+):
     api_key = os.environ.get("EXCHANGE_RATE_API_KEY")
     url = f"{API_URL}{api_key}/pair/{from_currency}/{to_currency}/{amount}"
 
