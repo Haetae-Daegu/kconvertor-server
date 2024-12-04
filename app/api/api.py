@@ -25,7 +25,7 @@ def exchange_rate(from_currency: str = "EUR", to_currency:str = "KRW", amount:fl
 
     try:
         response = requests.get(url)
-        if response.status_code == 500:
+        if response.status_code == 403:
             raise APIError(403, "Forbidden: Access to the API is denied")
 
         data = response.json()
