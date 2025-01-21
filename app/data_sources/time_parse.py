@@ -19,4 +19,5 @@ def parse_file():
                 data.append(obj_value)
             except ValueError:
                 raise APIError(500, f"Unexpected exception with data graph")
-    return data
+    data_sorted = sorted(data, key=lambda x: x["date"])
+    return data_sorted
