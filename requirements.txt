@@ -4,3 +4,4 @@ flask
 flask_swagger_ui
 requests_mock
 flask-cors
+python-dotenv

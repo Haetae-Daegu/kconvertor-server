@@ -2,6 +2,7 @@ from app.api.api import *
 from flask import Flask
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
+import os
 
 SWAGGER_URL = "/apidocs"
 API_URL = "/static/swagger.json"
@@ -39,4 +40,4 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host="0.0.0.0", debug=True)
