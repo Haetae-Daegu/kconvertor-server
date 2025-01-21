@@ -14,7 +14,7 @@ def parse_file():
                     "%Y/%m/%d"
                 )
                 rate = int(rate_str)
-                currency_value = round(1 / (rate / 10000000), 4)
+                currency_value = round((1 / (rate / 10000000)) * 1000, 2)
                 obj_value = {"date": parsed_date, "currency_value": currency_value}
                 data.append(obj_value)
             except ValueError:
