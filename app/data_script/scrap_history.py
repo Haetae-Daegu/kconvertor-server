@@ -12,13 +12,13 @@ def get_data(soup):
                 date = line.text.strip().split("\n")[1]
             if line.find("span"):
                 currency_value = line.text.strip().split("\n")[0]
-                to_remove = [("1 EUR = ", ""), ("KRW", ""), ("\xa0", "")]
+                to_remove = [("1 EUR = ", ""), ("KRW", ""), ("\xa0", ""), (",", ".")]
                 [currency_value := currency_value.replace(a, b) for a, b, in to_remove]
                 
                 if "Taux de change" in currency_value:
                     continue
 
-                formatted_line = f"KRW\t{date}\t{currency_value}\n"
+                formatted_line = f"KRW\t{date}\t{float(currency_value)}\n"
                 file.write(formatted_line)
 
 def get_page(url):
