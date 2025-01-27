@@ -8,16 +8,11 @@ def parse_file():
     with open(FILE_RATE, "r", encoding="utf-8") as file:
         for line in file:
             parts = line.strip().split("\t")
-            _, date_str, rate_str = parts
+            _, date_str, currency_str = parts
             try:
-                parsed_date = datetime.datetime.strptime(date_str, "%d/%m/%Y").strftime(
-                    "%Y/%m/%d"
-                )
-                rate = int(rate_str)
-                currency_value = round((1 / (rate / 10000000)) * 1000, 2)
-                obj_value = {"date": parsed_date, "currency_value": currency_value}
+                
+                obj_value = {"date": date_str, "currency_value": currency_str}
                 data.append(obj_value)
             except ValueError:
                 raise APIError(500, f"Unexpected exception with data graph")
-    data_sorted = sorted(data, key=lambda x: x["date"])
-    return data_sorted
+    return data

@@ -6,7 +6,7 @@ def get_data(soup):
     data = []
     table = soup.find(class_="history-rates-data")
     rows = table.find_all("td")
-    with open("../../data/historical_currency.txt", "w", encoding="utf-8") as file:
+    with open("../../data/historical_currency.txt", "a", encoding="utf-8") as file:
         for line in rows:
             if line.find("a"):
                 date = line.text.strip().split("\n")[1]
@@ -32,13 +32,18 @@ def get_page(url):
         return page.content
     return None
 
-def scrap():
-    page_content = get_page("https://www.exchange-rates.org/fr/historique/eur-krw-2025")
-    if page_content:
-        soup = BeautifulSoup(page_content, "html.parser")
-        get_data(soup)
-    else:
-        print("Error connection or URL")
+def scrap(years):
+    base_url = "https://www.exchange-rates.org/fr/historique/eur-krw-"
+    for year in years:
+        print(f"Scraping data of {year}...")
+        page_content = get_page(base_url + str(year))
+        if page_content:
+            soup = BeautifulSoup(page_content, "html.parser")
+            get_data(soup)
+        else:
+            print(f"Impossible de récupérer la page pour l'année {year}. Vérifiez l'URL ou la connexion.")
+
     
 if __name__ == "__main__":
-    scrap()
+    years = [2020, 2021, 2022, 2023, 2024, 2025]
+    scrap(years)
