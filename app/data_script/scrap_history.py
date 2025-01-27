@@ -3,10 +3,9 @@ import requests
 
 
 def get_data(soup):
-    data = []
     table = soup.find(class_="history-rates-data")
     rows = table.find_all("td")
-    with open("../../data/historical_currency.txt", "a", encoding="utf-8") as file:
+    with open("historical_currency.txt", "a", encoding="utf-8") as file:
         for line in rows:
             if line.find("a"):
                 date = line.text.strip().split("\n")[1]

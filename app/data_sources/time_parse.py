@@ -1,6 +1,5 @@
 from app.data_sources import FILE_RATE
 from app.error import APIError
-import datetime
 
 
 def parse_file():
