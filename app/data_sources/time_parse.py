@@ -10,7 +10,7 @@ def parse_file():
             parts = line.strip().split("\t")
             _, date_str, currency_value = parts
             try:
-                
+
                 obj_value = {"date": date_str, "currency_value": float(currency_value)}
                 data.append(obj_value)
             except ValueError:
