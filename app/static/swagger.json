@@ -1,57 +1,156 @@
 {
-    "swagger": "2.0",
-    "info": {
+  "swagger": "2.0",
+  "info": {
       "title": "Access API",
       "version": "1.0.0"
-    },
-    "paths": {
-        "/currency": {
-          "post": {
-            "description": "Returns a dict containing the conversion between euros to Korean wons",
-            "produces": [
-              "application/json"
-            ],
-            "parameters": [
-              {
-                "in": "body",
-                "name": "body",
-                "required": true,
-                "description": "Country for which the conversion rate is requested.",
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "from_currency": {
-                      "type": "string"
-                    },
-                    "to_currency": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "float"
-                    }
-                  },
-                  "required": [
-                    "from_currency",
-                    "to_currency",
-                    "amount"
-                  ],
-                  "example": {
-                    "from_currency": "EUR",
-                    "to_currency": "KRW",
-                    "amount": 1
+  },
+  "paths": {
+      "/users": {
+          "get": {
+              "summary": "List all users",
+              "responses": {
+                  "200": {
+                      "description": "Successful operation",
+                      "schema": {
+                          "type": "array",
+                          "items": {
+                              "$ref": "#/definitions/User"
+                          }
+                      }
                   }
-                }
               }
-            ],
-            "responses": {
-              "200": {
-                "description": "Successful operation"
-              },
-              "403": {
-                "description": "Forbidden: Access to the API is denied"
+          },
+          "post": {
+              "summary": "Create a new user",
+              "parameters": [
+                  {
+                      "in": "body",
+                      "name": "body",
+                      "required": true,
+                      "schema": {
+                          "$ref": "#/definitions/UserCreate"
+                      }
+                  }
+              ],
+              "responses": {
+                  "201": {
+                      "description": "User created successfully",
+                      "schema": {
+                          "$ref": "#/definitions/User"
+                      }
+                  },
+                  "400": {
+                      "description": "Invalid input data"
+                  }
               }
-            }
           }
-        }
-    }
+      },
+      "/users/{user_id}": {
+          "get": {
+              "summary": "Get a specific user",
+              "parameters": [
+                  {
+                      "name": "user_id",
+                      "in": "path",
+                      "required": true,
+                      "type": "integer"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Successful operation",
+                      "schema": {
+                          "$ref": "#/definitions/User"
+                      }
+                  },
+                  "404": {
+                      "description": "User not found"
+                  }
+              }
+          },
+          "put": {
+              "summary": "Update an existing user",
+              "parameters": [
+                  {
+                      "name": "user_id",
+                      "in": "path",
+                      "required": true,
+                      "type": "integer"
+                  },
+                  {
+                      "in": "body",
+                      "name": "body",
+                      "required": true,
+                      "schema": {
+                          "$ref": "#/definitions/UserCreate"
+                      }
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "User updated successfully",
+                      "schema": {
+                          "$ref": "#/definitions/User"
+                      }
+                  },
+                  "400": {
+                      "description": "Invalid input data"
+                  },
+                  "404": {
+                      "description": "User not found"
+                  }
+              }
+          },
+          "delete": {
+              "summary": "Delete a user",
+              "parameters": [
+                  {
+                      "name": "user_id",
+                      "in": "path",
+                      "required": true,
+                      "type": "integer"
+                  }
+              ],
+              "responses": {
+                  "200": {
+                      "description": "User deleted successfully"
+                  },
+                  "404": {
+                      "description": "User not found"
+                  }
+              }
+          }
+      }
+  },
+  "definitions": {
+      "User": {
+          "type": "object",
+          "properties": {
+              "id": {
+                  "type": "integer"
+              },
+              "username": {
+                  "type": "string"
+              },
+              "email": {
+                  "type": "string"
+              }
+          }
+      },
+      "UserCreate": {
+          "type": "object",
+          "properties": {
+              "username": {
+                  "type": "string"
+              },
+              "email": {
+                  "type": "string"
+              },
+              "password": {
+                  "type": "string"
+              }
+          },
+          "required": ["username", "email", "password"]
+      }
+  }
 }

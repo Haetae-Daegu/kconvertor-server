@@ -6,3 +6,9 @@ requests_mock
 flask-cors
 python-dotenv
 beautifulsoup4
+psycopg2-binary
+flask-sqlalchemy
+flask_bcrypt
+sqlalchemy-serializer
+Flask-Migrate
+pydantic
