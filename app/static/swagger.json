@@ -5,6 +5,39 @@
       "version": "1.0.0"
   },
   "paths": {
+    "/currency": {
+        "post": {
+          "summary": "Convert currency",
+          "description": "Returns a dict containing the conversion between currencies.",
+          "produces": ["application/json"],
+          "parameters": [
+              {
+                  "in": "body",
+                  "name": "body",
+                  "required": true,
+                  "description": "Conversion details",
+                  "schema": {
+                      "type": "object",
+                      "properties": {
+                          "from_currency": {"type": "string"},
+                          "to_currency": {"type": "string"},
+                          "amount": {"type": "number", "format": "float"}
+                      },
+                      "required": ["from_currency", "to_currency", "amount"],
+                      "example": {
+                          "from_currency": "EUR",
+                          "to_currency": "KRW",
+                          "amount": 1
+                      }
+                  }
+              }
+          ],
+          "responses": {
+              "200": {"description": "Successful operation"},
+              "403": {"description": "Forbidden: Access denied"}
+          }
+        }
+      },
       "/users": {
           "get": {
               "summary": "List all users",
