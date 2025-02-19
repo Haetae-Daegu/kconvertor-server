@@ -1,6 +1,4 @@
 from flask import Blueprint, jsonify, request
-from app.models.user import User
-from app.database.database import db
 from app.services.user_service import *
 from app.error import APIError
 
