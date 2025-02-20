@@ -1,8 +1,7 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from app.database.database import db
 from app.services.user_service import *
-from app.security.security import bcrypt, jwt
+from app.services.auth_service import *
 from app.error import APIError
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -30,12 +29,8 @@ def register_user():
     if user_exists is not None:
         return APIError(409, f"Error: User already exists").to_response()
     
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf8')
-    new_user = User(email=email, username=username, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
+    new_user = register_data_user(email, username, password)
     
-    session["user_id"] = new_user.id
     return jsonify({"id": new_user.id, "email": new_user.email})
 
 @auth_bp.route("/login", methods=["POST"])

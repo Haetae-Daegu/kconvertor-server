@@ -11,8 +11,8 @@ flask_swagger_ui
 flask-sqlalchemy
 flask_bcrypt
 flask-cors
-flask-session
 Flask-Migrate
+Flask-JWT-Extended
 
 sqlalchemy-serializer
 pydantic
