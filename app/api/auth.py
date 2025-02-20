@@ -1,10 +1,23 @@
 from flask import Blueprint, jsonify, request, session
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from app.database.database import db
 from app.services.user_service import *
-from app.security.security import bcrypt
+from app.security.security import bcrypt, jwt
 from app.error import APIError
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+@auth_bp.route("/me", methods=['GET'])
+@jwt_required()
+def get_me():
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+
+    if user:
+        return jsonify({"message": "User found", "username": user.username}), 200
+    else:
+        return APIError(401, f"Error: User already exists").to_response()
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -32,13 +45,8 @@ def login_user():
 
     user = User.query.filter_by(email=email).first()
 
-    if user is None:
+    if user and bcrypt.check_password_hash(user.password, password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'message': 'Login Success', 'access_token': access_token}), 200
+    else:
         return APIError(401, f"Error: Incorrect informations").to_response()
-    if not bcrypt.check_password_hash(user.password, password):
-        return APIError(401, f"Error: Incorrect informations").to_response()
-    
-    session["user_id"] = user.id
-    return jsonify({
-        "id": user.id,
-        "email": user.email
-    })

@@ -5,11 +5,10 @@ from app.api.auth import auth_bp
 from app.error import APIError
 from flask import Flask, jsonify
 from flask_cors import CORS
-# from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 from app.database.database import db
-from app.security.security import bcrypt
-from dotenv import load_dotenv
+from app.security.security import bcrypt, jwt
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 
 import os
 
@@ -17,7 +16,9 @@ import os
 def create_app():
     app = Flask(__name__)
     app.config.from_mapping(
-        SECRET_KEY="dev",
+        SECRET_KEY=os.environ.get('SECRET_KEY'),
+        JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY'),
+        JWT_TOKEN_LOCATION=['headers'],
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
         SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL')
     )
@@ -25,6 +26,7 @@ def create_app():
     CORS(app)
     db.init_app(app)
     bcrypt.init_app(app)
+    jwt.init_app(app)
 
     SWAGGER_URL = "/apidocs"
     API_URL = "/static/swagger.json"
