@@ -8,7 +8,6 @@ from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from app.database.database import db
 from app.security.security import bcrypt, jwt
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 
 import os
 
