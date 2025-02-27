@@ -1,189 +1,251 @@
 {
-  "swagger": "2.0",
-  "info": {
-      "title": "Access API",
-      "version": "1.0.0"
-  },
-  "paths": {
-    "/currency": {
-        "post": {
-          "summary": "Convert currency",
-          "description": "Returns a dict containing the conversion between currencies.",
-          "produces": ["application/json"],
-          "parameters": [
-              {
-                  "in": "body",
-                  "name": "body",
-                  "required": true,
-                  "description": "Conversion details",
-                  "schema": {
-                      "type": "object",
-                      "properties": {
-                          "from_currency": {"type": "string"},
-                          "to_currency": {"type": "string"},
-                          "amount": {"type": "number", "format": "float"}
-                      },
-                      "required": ["from_currency", "to_currency", "amount"],
-                      "example": {
-                          "from_currency": "EUR",
-                          "to_currency": "KRW",
-                          "amount": 1
-                      }
-                  }
-              }
-          ],
-          "responses": {
-              "200": {"description": "Successful operation"},
-              "403": {"description": "Forbidden: Access denied"}
-          }
+    "swagger": "2.0",
+    "info": {
+        "title": "Access API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/users": {
+            "get": {
+                "summary": "List all users",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/User"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "summary": "Get a specific user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an existing user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "409": {
+                        "description": "User already exists"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "summary": "Login a user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": { "type": "string" },
+                                "access_token": { "type": "string" }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "401": {
+                        "description": "Incorrect email or password"
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "summary": "Get current authenticated user",
+                "security": [{ "BearerAuth": [] }],
+                "responses": {
+                    "200": {
+                        "description": "User found",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": { "type": "string" },
+                                "username": { "type": "string" }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
         }
-      },
-      "/users": {
-          "get": {
-              "summary": "List all users",
-              "responses": {
-                  "200": {
-                      "description": "Successful operation",
-                      "schema": {
-                          "type": "array",
-                          "items": {
-                              "$ref": "#/definitions/User"
-                          }
-                      }
-                  }
-              }
-          },
-          "post": {
-              "summary": "Create a new user",
-              "parameters": [
-                  {
-                      "in": "body",
-                      "name": "body",
-                      "required": true,
-                      "schema": {
-                          "$ref": "#/definitions/UserCreate"
-                      }
-                  }
-              ],
-              "responses": {
-                  "201": {
-                      "description": "User created successfully",
-                      "schema": {
-                          "$ref": "#/definitions/User"
-                      }
-                  },
-                  "400": {
-                      "description": "Invalid input data"
-                  }
-              }
-          }
-      },
-      "/users/{user_id}": {
-          "get": {
-              "summary": "Get a specific user",
-              "parameters": [
-                  {
-                      "name": "user_id",
-                      "in": "path",
-                      "required": true,
-                      "type": "integer"
-                  }
-              ],
-              "responses": {
-                  "200": {
-                      "description": "Successful operation",
-                      "schema": {
-                          "$ref": "#/definitions/User"
-                      }
-                  },
-                  "404": {
-                      "description": "User not found"
-                  }
-              }
-          },
-          "put": {
-              "summary": "Update an existing user",
-              "parameters": [
-                  {
-                      "name": "user_id",
-                      "in": "path",
-                      "required": true,
-                      "type": "integer"
-                  },
-                  {
-                      "in": "body",
-                      "name": "body",
-                      "required": true,
-                      "schema": {
-                          "$ref": "#/definitions/UserCreate"
-                      }
-                  }
-              ],
-              "responses": {
-                  "200": {
-                      "description": "User updated successfully",
-                      "schema": {
-                          "$ref": "#/definitions/User"
-                      }
-                  },
-                  "400": {
-                      "description": "Invalid input data"
-                  },
-                  "404": {
-                      "description": "User not found"
-                  }
-              }
-          },
-          "delete": {
-              "summary": "Delete a user",
-              "parameters": [
-                  {
-                      "name": "user_id",
-                      "in": "path",
-                      "required": true,
-                      "type": "integer"
-                  }
-              ],
-              "responses": {
-                  "200": {
-                      "description": "User deleted successfully"
-                  },
-                  "404": {
-                      "description": "User not found"
-                  }
-              }
-          }
-      }
-  },
-  "definitions": {
-      "User": {
-          "type": "object",
-          "properties": {
-              "id": {
-                  "type": "integer"
-              },
-              "username": {
-                  "type": "string"
-              },
-              "email": {
-                  "type": "string"
-              }
-          }
-      },
-      "UserCreate": {
-          "type": "object",
-          "properties": {
-              "username": {
-                  "type": "string"
-              },
-              "email": {
-                  "type": "string"
-              },
-              "password": {
-                  "type": "string"
-              }
-          },
-          "required": ["username", "email", "password"]
-      }
-  }
+    },
+    "definitions": {
+        "User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserCreate": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "required": ["username", "email", "password"]
+        },
+        "LoginRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            },
+            "required": ["email", "password"]
+        }
+    }
 }
