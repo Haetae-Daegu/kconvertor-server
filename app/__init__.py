@@ -2,6 +2,8 @@ from app.api.currency import currency_bp
 from app.api.user import user_bp
 from app.api.graph import graph_bp
 from app.api.auth import auth_bp
+from app.api.accommodations import accommodation_bp
+
 from app.error import APIError
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -38,6 +40,7 @@ def create_app():
     app.register_blueprint(graph_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(accommodation_bp)
 
     @app.route("/")
     def list_routes():

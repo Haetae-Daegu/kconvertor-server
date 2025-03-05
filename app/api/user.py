@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from app.services.user_service import *
 from app.error import APIError
+from app.schemas.user import UserCreate, UserUpdate
+from pydantic import ValidationError
 
 
 user_bp = Blueprint("user", __name__, url_prefix="/users")
@@ -19,21 +21,46 @@ def get_user(user_id):
 
 @user_bp.route("/", methods=["POST"])
 def add_user():
-    data = request.get_json()
-    if not data or "username" not in data or "email" not in data or "password" not in data:
-        return APIError(400, f"Error: Invalid data").to_response()
-    user = create_user(data["username"], data["email"], data["password"])
-    return jsonify({"id": user.id, "username": user.username, "email": user.email}), 201
+    try:
+        data = request.get_json()
+        if not data:
+            return APIError(400, "Error: Invalid data").to_response()
+
+        user_data = UserCreate(**data)
+        
+        user = create_user(
+            username=user_data.username,
+            email=user_data.email,
+            password=user_data.password
+        )
+        return jsonify({"id": user.id, "username": user.username, "email": user.email}), 201
+    except ValidationError as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
+    except Exception as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
 
 @user_bp.route("/<int:user_id>", methods=["PUT"])
 def modify_user(user_id):
-    data = request.get_json()
-    if not data:
-        return APIError(400, f"Error: Invalid data").to_response()
-    user = update_user(user_id, data["username"], data["email"], data["password"])
-    if not user:
-        return APIError(404, f"Error: User not found").to_response()
-    return jsonify({"id": user.id, "username": user.username, "email": user.email}), 200
+    try:
+        data = request.get_json()
+        if not data:
+            return APIError(400, "Error: Invalid data").to_response()
+
+        user_data = UserUpdate(**data)
+        
+        user = update_user(
+            user_id=user_id,
+            username=user_data.username,
+            email=user_data.email,
+            password=user_data.password
+        )
+        if not user:
+            return APIError(404, f"Error: User not found").to_response()
+        return jsonify({"id": user.id, "username": user.username, "email": user.email}), 200
+    except ValidationError as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
+    except Exception as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
 
 @user_bp.route("/<int:user_id>", methods=["DELETE"])
 def remove_user(user_id):
