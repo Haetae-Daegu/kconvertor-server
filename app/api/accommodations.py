@@ -3,6 +3,13 @@ from app.services.accommodation_service import *
 from app.error import APIError
 from app.schemas.accommodation import AccommodationCreate, AccommodationUpdate
 from pydantic import ValidationError
+from dotenv import load_dotenv
+import json
+from app.services.storage_factory import StorageFactory, StorageType
+from pathlib import Path
+
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(env_path)
 
 accommodation_bp = Blueprint('accommodations', __name__, url_prefix='/accommodations')
 
@@ -20,23 +27,29 @@ def get_accommodation(id):
         return APIError(404, f"Error: Accommodation not found").to_response()
 
 @accommodation_bp.route('/', methods=['POST'])
-def create_accommodation():
+def add_accommodation():
     try:
-        data = request.get_json()
-        if not data:
-            return APIError(400, "Error: Invalid data").to_response()
+        if 'images[]' not in request.files:
+            return APIError(400, "Error: No images provided").to_response()
+        
+        files = request.files.getlist('images[]')
+        if not files or all(not file.filename for file in files):
+            return APIError(400, "Error: No images selected").to_response()
+
+        data = json.loads(request.form['data'])
+
+        storage_service = StorageFactory.get_storage_service(StorageType.S3)
+        image_urls = storage_service.upload_files(files)
+        data['image_urls'] = image_urls
 
         accommodation_data = AccommodationCreate(**data)
-        
-        accommodation = create_accommodation(accommodation_data.dict(), 1)  # hardcoded user_id
+        accommodation = create_accommodation(accommodation_data.dict(), 1)
         return jsonify(accommodation.to_dict()), 201
-    except ValidationError as e:
-        return APIError(400, f"Error: {str(e)}").to_response()
     except Exception as e:
         return APIError(400, f"Error: {str(e)}").to_response()
 
 @accommodation_bp.route('/<int:id>', methods=['PUT'])
-def update_accommodation(id):
+def modify_accommodation(id):
     try:
         data = request.get_json()
         if not data:
@@ -44,7 +57,7 @@ def update_accommodation(id):
 
         accommodation_data = AccommodationUpdate(**data)
         
-        accommodation = update_accommodation(id, accommodation_data.dict(exclude_unset=True), 1)
+        accommodation = update_accommodation(id, accommodation_data.model_dump(exclude_unset=True), 1)
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:
         return APIError(400, f"Error: {str(e)}").to_response()

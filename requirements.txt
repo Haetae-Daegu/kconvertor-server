@@ -16,3 +16,5 @@ Flask-JWT-Extended
 
 sqlalchemy-serializer
 pydantic
+
+boto3

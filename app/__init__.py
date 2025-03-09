@@ -10,9 +10,14 @@ from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from app.database.database import db
 from app.security.security import bcrypt, jwt
+from dotenv import load_dotenv
+from pathlib import Path
 
 import os
 
+# Charger les variables d'environnement depuis le dossier app
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 def create_app():
     app = Flask(__name__)
