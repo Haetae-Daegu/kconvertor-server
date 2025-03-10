@@ -26,7 +26,8 @@ def create_accommodation(data, host_id):
         house_rules=data.get('house_rules'),
         host_id=host_id,
         latitude=data.get('latitude'),
-        longitude=data.get('longitude')
+        longitude=data.get('longitude'),
+        image_urls=data.get('image_urls', [])
     )
     
     db.session.add(accommodation)

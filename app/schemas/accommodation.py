@@ -24,7 +24,7 @@ class AccommodationBase(BaseModel):
         return round(v, 2)
 
 class AccommodationCreate(AccommodationBase):
-    pass
+    image_urls: Optional[List[str]] = []
 
 class AccommodationUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -47,6 +47,7 @@ class AccommodationResponse(AccommodationBase):
     created_at: datetime
     updated_at: datetime
     status: str = 'active'
+    image_urls: List[str]
 
     class Config:
         from_attributes = True 

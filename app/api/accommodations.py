@@ -36,14 +36,14 @@ def add_accommodation():
         if not files or all(not file.filename for file in files):
             return APIError(400, "Error: No images selected").to_response()
 
-        data = json.loads(request.form['data'])
-
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
         image_urls = storage_service.upload_files(files)
+
+        data = json.loads(request.form['data'])
         data['image_urls'] = image_urls
 
         accommodation_data = AccommodationCreate(**data)
-        accommodation = create_accommodation(accommodation_data.dict(), 1)
+        accommodation = create_accommodation(accommodation_data.model_dump(exclude_unset=True), 1)
         return jsonify(accommodation.to_dict()), 201
     except Exception as e:
         return APIError(400, f"Error: {str(e)}").to_response()

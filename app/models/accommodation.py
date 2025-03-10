@@ -21,6 +21,7 @@ class Accommodation(db.Model):
     latitude = db.Column(db.Numeric(10, 8))
     longitude = db.Column(db.Numeric(11, 8))
     status = db.Column(db.String(20), default='active')
+    image_urls = db.Column(db.ARRAY(db.String))
     host = db.relationship('User', backref='accommodations')
 
     def to_dict(self):
@@ -42,5 +43,6 @@ class Accommodation(db.Model):
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "latitude": float(self.latitude) if self.latitude else None,
             "longitude": float(self.longitude) if self.longitude else None,
-            "status": self.status
+            "status": self.status,
+            "image_urls": self.image_urls
         } 

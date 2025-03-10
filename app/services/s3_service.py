@@ -35,7 +35,8 @@ class S3Service(StorageInterface):
                 try:
                     file.seek(0)
                     filename = secure_filename(file.filename)
-                    s3_path = f'{filename}'
+                    s3_path = f"accommodations/{filename}"
+
                     
                     self.s3_client.upload_fileobj(
                         file,
@@ -43,8 +44,7 @@ class S3Service(StorageInterface):
                         s3_path,
                         ExtraArgs={'ACL': 'public-read', 'ContentType': file.content_type}
                     )
-                    
-                    image_url = f"https://{self.space_name}.{os.getenv('SPACE_REGION')}.digitaloceanspaces.com/{s3_path}"
+                    image_url = f"https://{self.space_name}.lon1.cdn.digitaloceanspaces.com/{s3_path}"
                     image_urls.append(image_url)
                     print(f"Successfully uploaded {filename} to Space")
                     
