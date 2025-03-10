@@ -14,11 +14,18 @@ class S3Service(StorageInterface):
 
         self.s3_client = boto3.client(
             's3',
-            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-            region_name=os.getenv('AWS_REGION')
+            endpoint_url=os.getenv('SPACE_ENDPOINT'),
+            aws_access_key_id=os.getenv('SPACE_ACCESS_KEY'),
+            aws_secret_access_key=os.getenv('SPACE_SECRET_KEY'),
+            region_name=os.getenv('SPACE_REGION')
         )
-        self.bucket_name = os.getenv('S3_BUCKET_NAME')
+        self.space_name = os.getenv('SPACE_NAME')
+
+        print("\n=== DigitalOcean Spaces Configuration ===")
+        print(f"Endpoint: {os.getenv('SPACE_ENDPOINT')}")
+        print(f"Region: {os.getenv('SPACE_REGION')}")
+        print(f"Space Name: {self.space_name}")
+        print(f"Access Key Length: {len(os.getenv('SPACE_ACCESS_KEY', ''))}")
 
     def upload_files(self, files: List[FileStorage], folder: str = 'accommodations') -> List[str]:
         image_urls = []
@@ -27,29 +34,22 @@ class S3Service(StorageInterface):
             if file and file.filename:
                 try:
                     file.seek(0)
-                    
-                    file_content = file.read()                    
-                    file.seek(0)
-                    
                     filename = secure_filename(file.filename)
-                    s3_path = f'{folder}/{filename}'
+                    s3_path = f'{filename}'
                     
-                    try:
-                        self.s3_client.put_object(
-                            Bucket=self.bucket_name,
-                            Key=s3_path,
-                            Body=file_content,
-                            ContentType=file.content_type
-                        )
-                        
-                        image_url = f"https://{self.bucket_name}.s3.amazonaws.com/{s3_path}"
-                        image_urls.append(image_url)
-                        print(f"Successfully uploaded {filename} to S3")
-                        
-                    except Exception as upload_error:
-                        raise upload_error
-                        
+                    self.s3_client.upload_fileobj(
+                        file,
+                        self.space_name,
+                        s3_path,
+                        ExtraArgs={'ACL': 'public-read', 'ContentType': file.content_type}
+                    )
+                    
+                    image_url = f"https://{self.space_name}.{os.getenv('SPACE_REGION')}.digitaloceanspaces.com/{s3_path}"
+                    image_urls.append(image_url)
+                    print(f"Successfully uploaded {filename} to Space")
+                    
                 except Exception as e:
+                    print(f"Error uploading file {file.filename}: {str(e)}")
                     continue
                 finally:
                     file.close()
@@ -58,8 +58,8 @@ class S3Service(StorageInterface):
 
     def delete_file(self, file_url: str) -> bool:
         try:
-            path = file_url.split(f"{self.bucket_name}.s3.amazonaws.com/")[1]
-            self.s3_client.delete_object(Bucket=self.bucket_name, Key=path)
+            path = file_url.split(f"{self.space_name}.{os.getenv('SPACE_REGION')}.digitaloceanspaces.com/")[1]
+            self.s3_client.delete_object(Bucket=self.space_name, Key=path)
             return True
         except Exception as e:
             print(f"Error deleting file {file_url}: {e}")
