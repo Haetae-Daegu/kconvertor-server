@@ -35,8 +35,13 @@ class S3Service(StorageInterface):
                 try:
                     file.seek(0)
                     filename = secure_filename(file.filename)
-                    s3_path = f"{filename}"
+                    folder = folder.strip('/').rstrip('/')
+                    if folder == self.space_name:  
+                        s3_path = filename
+                    else:
+                        s3_path = f"{folder}/{filename}"
 
+                    print(f"Uploading file to: {s3_path}")
                     
                     self.s3_client.upload_fileobj(
                         file,
@@ -44,9 +49,9 @@ class S3Service(StorageInterface):
                         s3_path,
                         ExtraArgs={'ACL': 'public-read', 'ContentType': file.content_type}
                     )
-                    image_url = f"https://{self.space_name}.lon1.cdn.digitaloceanspaces.com/{s3_path}"
+                    image_url = f"https://{self.space_name}.lon1.cdn.digitaloceanspaces.com/{folder}/{s3_path}"
                     image_urls.append(image_url)
-                    print(f"Successfully uploaded {filename} to Space")
+
                     
                 except Exception as e:
                     print(f"Error uploading file {file.filename}: {str(e)}")
