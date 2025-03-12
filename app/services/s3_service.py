@@ -35,7 +35,7 @@ class S3Service(StorageInterface):
                 try:
                     file.seek(0)
                     filename = secure_filename(file.filename)
-                    s3_path = f"accommodations/{filename}"
+                    s3_path = f"{filename}"
 
                     
                     self.s3_client.upload_fileobj(
