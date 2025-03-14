@@ -18,3 +18,5 @@ sqlalchemy-serializer
 pydantic
 
 boto3
+
+geopy

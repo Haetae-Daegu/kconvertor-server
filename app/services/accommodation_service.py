@@ -1,6 +1,9 @@
 from app.models.accommodation import Accommodation
 from app.database.database import db
 from werkzeug.exceptions import NotFound, Forbidden
+from geopy.geocoders import Nominatim
+import requests
+import os
 
 def get_all_accommodations():
     return Accommodation.query.filter_by(status='active').all()
@@ -30,6 +33,12 @@ def create_accommodation(data, host_id):
         image_urls=data.get('image_urls', [])
     )
     
+    try:
+        set_coordinates(accommodation)
+        print(accommodation.latitude, accommodation.longitude)
+    except ValueError as e:
+        print(e)
+    
     db.session.add(accommodation)
     db.session.commit()
     return accommodation
@@ -37,20 +46,21 @@ def create_accommodation(data, host_id):
 def update_accommodation(accommodation_id, data, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
     
-    if accommodation.host_id != host_id:
-        raise Forbidden('Not authorized to update this accommodation')
+    #if accommodation.host_id != host_id:
+    #    raise Forbidden('Not authorized to update this accommodation')
     
     for key, value in data.items():
         setattr(accommodation, key, value)
     
+    set_coordinates(accommodation)
     db.session.commit()
     return accommodation
 
 def delete_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
     
-    if accommodation.host_id != host_id:
-        raise Forbidden('Not authorized to delete this accommodation')
+    #if accommodation.host_id != host_id:
+    #    raise Forbidden('Not authorized to delete this accommodation')
     
     db.session.delete(accommodation)
     db.session.commit()
@@ -58,9 +68,28 @@ def delete_accommodation(accommodation_id, host_id):
 def archive_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
     
-    if accommodation.host_id != host_id:
-        raise Forbidden('Not authorized to archive this accommodation')
+    #if accommodation.host_id != host_id:
+    #    raise Forbidden('Not authorized to archive this accommodation')
     
     accommodation.status = 'archived'
     db.session.commit()
     return accommodation 
+
+def set_coordinates(accommodation):
+    api_key = os.getenv('GOOGLE_MAPS_API_KEY')
+    location = accommodation.location
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={location}&key={api_key}'
+
+    try:
+        response = requests.get(url)
+        data = response.json()
+
+        if data['status'] == 'OK':
+            accommodation.longitude = data['results'][0]['geometry']['location']['lng']
+            accommodation.latitude = data['results'][0]['geometry']['location']['lat']
+            print(f'Coordinates updated: {accommodation.latitude}, {accommodation.longitude}')  # Debug
+        else:
+            raise ValueError(f'Address not found: {location}. Error status: {data["status"]}')
+    except Exception as e:
+        print(f'Error calling API: {e}')
+        raise
