@@ -2,8 +2,10 @@ from enum import Enum
 from app.services.storage_interface import StorageInterface
 from app.services.s3_service import S3Service
 
+
 class StorageType(Enum):
     S3 = "s3"
+
 
 class StorageFactory:
     @staticmethod

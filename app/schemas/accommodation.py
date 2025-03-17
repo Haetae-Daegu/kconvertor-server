@@ -3,6 +3,7 @@ from typing import List, Optional
 from decimal import Decimal
 from datetime import datetime
 
+
 class AccommodationBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: str
@@ -18,13 +19,15 @@ class AccommodationBase(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
-    @field_validator('price_per_month', 'security_deposit')
+    @field_validator("price_per_month", "security_deposit")
     @classmethod
     def validate_price(cls, v):
         return round(v, 2)
 
+
 class AccommodationCreate(AccommodationBase):
     image_urls: Optional[List[str]] = []
+
 
 class AccommodationUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
@@ -41,13 +44,14 @@ class AccommodationUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
+
 class AccommodationResponse(AccommodationBase):
     id: int
     host_id: int
     created_at: datetime
     updated_at: datetime
-    status: str = 'active'
+    status: str = "active"
     image_urls: List[str]
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

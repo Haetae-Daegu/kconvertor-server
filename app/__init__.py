@@ -15,18 +15,18 @@ from pathlib import Path
 
 import os
 
-# Charger les variables d'environnement depuis le dossier app
-env_path = Path(__file__).parent / '.env'
+env_path = Path(__file__).parent / ".env"
 load_dotenv(env_path)
+
 
 def create_app():
     app = Flask(__name__)
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY'),
-        JWT_SECRET_KEY=os.environ.get('JWT_SECRET_KEY'),
-        JWT_TOKEN_LOCATION=['headers'],
+        SECRET_KEY=os.environ.get("SECRET_KEY"),
+        JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY"),
+        JWT_TOKEN_LOCATION=["headers"],
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL')
+        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
     )
 
     CORS(app)
