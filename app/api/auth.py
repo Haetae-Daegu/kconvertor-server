@@ -4,6 +4,7 @@ from app.services.user_service import *
 from app.services.auth_service import *
 from pydantic import BaseModel, ValidationError
 from app.error import APIError
+from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -50,22 +51,49 @@ def register_user():
 @auth_bp.route("/login", methods=["POST"])
 def login_user():
     try:
-        data = LoginSchema(**request.json).model_dump()
-        user = User.query.filter_by(email=data["email"]).first()
+        data = request.get_json()
+        
+        if not data or "email" not in data or "password" not in data:
+            return APIError(400, "Email and password are required").to_response()
+            
+        email = data["email"]
+        password = data["password"]
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return APIError(401, "This user doesn't exist").to_response()
+        
+        try:
+            if user.password.startswith('$2b$') or user.password.startswith('$2y$'):
+                from flask_bcrypt import Bcrypt
+                bcrypt = Bcrypt()
+                password_correct = bcrypt.check_password_hash(user.password, password)
+            else:
+                password_correct = check_password_hash(user.password, password)
+                
+            if not password_correct:
+                return APIError(401, "Invalid credentials").to_response()
+                
+        except ValueError as e:
+            print(f"Hash error: {str(e)}")
+            if user.password != password:
+                return APIError(401, "Invalid credentials").to_response()
+        
+        access_token = create_access_token(identity=user.id)
+        
+        return jsonify({
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "access_token": access_token
+        }), 200
+        
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        return APIError(400, f"Error: {str(e)}").to_response()
 
-        if user and bcrypt.check_password_hash(user.password, data["password"]):
-            access_token = create_access_token(identity=user.id)
-            return (
-                jsonify({"message": "Login Success", "access_token": access_token}),
-                200,
-            )
-        else:
-            return APIError(401, f"Error: Incorrect information").to_response()
-    except ValidationError as error:
-        return APIError(400, error.errors()).to_response()
 
-
-# TODO Implementing logout when the main feature will be finished
-##Blacklist the token by creating a table in DB and storing that token then checking if this token is in there
-# @auth_bp.route("/logout", methods=["POST"])
-# def logout():
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    return jsonify({"message": "Successfully logged out"}), 200
