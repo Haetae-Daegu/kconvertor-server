@@ -50,8 +50,8 @@ def create_accommodation(data):
 def update_accommodation(accommodation_id, data, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
-    # if accommodation.host_id != host_id:
-    #    raise Forbidden('Not authorized to update this accommodation')
+    if accommodation.host_id != host_id:
+       raise Forbidden('Not authorized to update this accommodation')
 
     for key, value in data.items():
         setattr(accommodation, key, value)
@@ -64,8 +64,8 @@ def update_accommodation(accommodation_id, data, host_id):
 def delete_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
-    # if accommodation.host_id != host_id:
-    #    raise Forbidden('Not authorized to delete this accommodation')
+    if accommodation.host_id != host_id:
+       raise Forbidden('Not authorized to delete this accommodation')
 
     db.session.delete(accommodation)
     db.session.commit()
@@ -74,8 +74,8 @@ def delete_accommodation(accommodation_id, host_id):
 def archive_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
-    # if accommodation.host_id != host_id:
-    #    raise Forbidden('Not authorized to archive this accommodation')
+    if accommodation.host_id != host_id:
+       raise Forbidden('Not authorized to archive this accommodation')
 
     accommodation.status = "archived"
     db.session.commit()
