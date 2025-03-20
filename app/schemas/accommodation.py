@@ -27,6 +27,7 @@ class AccommodationBase(BaseModel):
 
 class AccommodationCreate(AccommodationBase):
     image_urls: Optional[List[str]] = []
+    host_id: Optional[int] = None
 
 
 class AccommodationUpdate(BaseModel):

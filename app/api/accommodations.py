@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.accommodation_service import *
+from app.services.user_service import *
 from app.error import APIError
 from app.schemas.accommodation import AccommodationCreate, AccommodationUpdate
 from pydantic import ValidationError
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 import json
 from app.services.storage_factory import StorageFactory, StorageType
 from pathlib import Path
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
@@ -30,10 +32,15 @@ def get_accommodation(id):
 
 
 @accommodation_bp.route("/", methods=["POST"])
-def add_accommodation():
+@jwt_required()
+def create_new_accommodation():
     try:
-        if "images[]" not in request.files:
-            return APIError(400, "Error: No images provided").to_response()
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return APIError(404, "User not found").to_response()
+        
 
         files = request.files.getlist("images[]")
         if not files or all(not file.filename for file in files):
@@ -44,12 +51,18 @@ def add_accommodation():
 
         data = json.loads(request.form["data"])
         data["image_urls"] = image_urls
+        data["host_id"] = user_id
 
         accommodation_data = AccommodationCreate(**data)
         accommodation = create_accommodation(
-            accommodation_data.model_dump(exclude_unset=True), 1
+            accommodation_data.model_dump(exclude_unset=True),
         )
-        return jsonify(accommodation.to_dict()), 201
+        
+        
+        accommodation_dict = accommodation.to_dict()
+        
+        return jsonify(accommodation_dict), 201
+        
     except Exception as e:
         return APIError(400, f"Error: {str(e)}").to_response()
 

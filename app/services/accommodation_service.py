@@ -17,7 +17,8 @@ def get_accommodation_by_id(accommodation_id):
     return accommodation
 
 
-def create_accommodation(data, host_id):
+def create_accommodation(data):
+    print(data)
     accommodation = Accommodation(
         title=data["title"],
         description=data["description"],
@@ -30,7 +31,7 @@ def create_accommodation(data, host_id):
         minimum_stay=data.get("minimum_stay", 1),
         amenities=data.get("amenities", []),
         house_rules=data.get("house_rules"),
-        host_id=host_id,
+        host_id=data["host_id"],
         latitude=data.get("latitude"),
         longitude=data.get("longitude"),
         image_urls=data.get("image_urls", []),
@@ -38,9 +39,9 @@ def create_accommodation(data, host_id):
 
     try:
         set_coordinates(accommodation)
-        print(accommodation.latitude, accommodation.longitude)
     except ValueError as e:
         print(e)
+        raise e
 
     db.session.add(accommodation)
     db.session.commit()
