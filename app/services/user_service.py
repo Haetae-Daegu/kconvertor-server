@@ -17,15 +17,17 @@ def create_user(username, email, password):
     return new_user
 
 
-def update_user(user_id, username, email, password):
+def update_user(user_id, data):
     user = User.query.get(user_id)
-    if user:
-        user.email = email
-        user.username = username
-        user.password = password
-        db.session.commit()
-        return user
-    return None
+    if not user:
+        return None
+    
+    for field, value in data.items():
+        if hasattr(user, field):
+            setattr(user, field, value)
+    
+    db.session.commit()
+    return user
 
 
 def delete_user(user_id):

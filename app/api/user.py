@@ -19,7 +19,7 @@ def get_user(user_id):
     user = get_user_by_id(user_id)
     if not user:
         return APIError(404, f"Error: User not found").to_response()
-    return jsonify({"id": user.id, "username": user.username}), 200
+    return jsonify(user.to_dict()), 200
 
 
 @user_bp.route("/", methods=["POST"])

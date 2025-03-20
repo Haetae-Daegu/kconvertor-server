@@ -31,13 +31,7 @@ def get_me():
         user = User.query.filter_by(id=int(user_id)).first()
 
         if user:
-            return jsonify({
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-            }), 200
+            return jsonify(user.to_dict()), 200
         else:
             return APIError(404, "User not found").to_response()
     except JWTExtendedException as jwt_error:
