@@ -39,9 +39,8 @@ def create_new_accommodation():
         user = get_user_by_id(user_id)
         
         if not user:
-            return APIError(404, "User not found").to_response()
+            return APIError(404, "Not authorized").to_response()
         
-
         files = request.files.getlist("images[]")
         if not files or all(not file.filename for file in files):
             return APIError(400, "Error: No images selected").to_response()
@@ -68,8 +67,15 @@ def create_new_accommodation():
 
 
 @accommodation_bp.route("/<int:id>", methods=["PUT"])
+@jwt_required()
 def modify_accommodation(id):
     try:
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return APIError(404, "Not authorized").to_response()
+        
         data = request.get_json()
         if not data:
             return APIError(400, "Error: Invalid data").to_response()
@@ -89,9 +95,16 @@ def modify_accommodation(id):
 
 
 @accommodation_bp.route("/<int:id>", methods=["DELETE"])
+@jwt_required()
 def remove_accommodation(id):
     try:
-        delete_accommodation(id, 1)
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return APIError(404, "Not authorized").to_response()
+        
+        delete_accommodation(id, user_id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
         if "not found" in str(e).lower():
@@ -100,9 +113,15 @@ def remove_accommodation(id):
 
 
 @accommodation_bp.route("/<int:id>/archive", methods=["POST"])
+@jwt_required()
 def archive_accommodation(id):
     try:
-        accommodation = archive_accommodation(id, 1)
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        
+        if not user:
+            return APIError(404, "Not authorized").to_response()
+        accommodation = archive_accommodation(id, user_id)
         return jsonify(accommodation.to_dict()), 200
     except Exception as e:
         if "not found" in str(e).lower():

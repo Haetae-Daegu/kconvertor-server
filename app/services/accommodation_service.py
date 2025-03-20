@@ -18,7 +18,6 @@ def get_accommodation_by_id(accommodation_id):
 
 
 def create_accommodation(data):
-    print(data)
     accommodation = Accommodation(
         title=data["title"],
         description=data["description"],
