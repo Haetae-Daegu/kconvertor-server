@@ -1,10 +1,12 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, verify_jwt_in_request
 from app.services.user_service import *
 from app.services.auth_service import *
 from pydantic import BaseModel, ValidationError
 from app.error import APIError
 from werkzeug.security import check_password_hash
+from flask_jwt_extended.exceptions import JWTExtendedException
+from jwt.exceptions import PyJWTError
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -21,15 +23,32 @@ class LoginSchema(BaseModel):
 
 
 @auth_bp.route("/me", methods=["GET"])
-@jwt_required()
 def get_me():
-    user_id = get_jwt_identity()
-    user = User.query.filter_by(id=user_id).first()
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        
+        user = User.query.filter_by(id=int(user_id)).first()
 
-    if user:
-        return jsonify({"message": "User found", "username": user.username}), 200
-    else:
-        return APIError(401, f"Error: User already exists").to_response()
+        if user:
+            return jsonify({
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+            }), 200
+        else:
+            return APIError(404, "User not found").to_response()
+    except JWTExtendedException as jwt_error:
+        print(f"Erreur JWT: {str(jwt_error)}")
+        return APIError(401, f"JWT error: {str(jwt_error)}").to_response()
+    except PyJWTError as pyjwt_error:
+        print(f"Erreur PyJWT: {str(pyjwt_error)}")
+        return APIError(401, f"Token error: {str(pyjwt_error)}").to_response()
+    except Exception as e:
+        print(f"Error in /auth/me endpoint: {str(e)}")
+        return APIError(500, f"Internal server error: {str(e)}").to_response()
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -80,7 +99,7 @@ def login_user():
             if user.password != password:
                 return APIError(401, "Invalid credentials").to_response()
         
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
             "id": user.id,

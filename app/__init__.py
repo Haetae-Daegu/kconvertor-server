@@ -12,6 +12,8 @@ from app.database.database import db
 from app.security.security import bcrypt, jwt
 from dotenv import load_dotenv
 from pathlib import Path
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 
 import os
 
@@ -27,12 +29,13 @@ def create_app():
         JWT_TOKEN_LOCATION=["headers"],
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
         SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
+        JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=24)
     )
 
     CORS(app)
     db.init_app(app)
     bcrypt.init_app(app)
-    jwt.init_app(app)
+    jwt = JWTManager(app)
 
     SWAGGER_URL = "/apidocs"
     API_URL = "/static/swagger.json"
