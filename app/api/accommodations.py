@@ -81,9 +81,8 @@ def modify_accommodation(id):
             return APIError(400, "Error: Invalid data").to_response()
 
         accommodation_data = AccommodationUpdate(**data)
-
         accommodation = update_accommodation(
-            id, accommodation_data.model_dump(exclude_unset=True), 1
+            id, accommodation_data.model_dump(exclude_unset=True), user.id
         )
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:

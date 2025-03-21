@@ -47,10 +47,9 @@ def create_accommodation(data):
     return accommodation
 
 
-def update_accommodation(accommodation_id, data, host_id):
+def update_accommodation(accommodation_id, data, user_id):
     accommodation = get_accommodation_by_id(accommodation_id)
-
-    if accommodation.host_id != host_id:
+    if accommodation.host_id != user_id:
        raise Forbidden('Not authorized to update this accommodation')
 
     for key, value in data.items():
