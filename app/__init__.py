@@ -27,7 +27,6 @@ def create_app():
         SECRET_KEY=os.environ.get("SECRET_KEY"),
         JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY"),
         JWT_TOKEN_LOCATION=["headers"],
-        DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
         SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
         JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=24)
     )
