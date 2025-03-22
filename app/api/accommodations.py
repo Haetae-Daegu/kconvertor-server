@@ -22,6 +22,20 @@ def get_list_accommodations():
     return jsonify([accommodation.to_dict() for accommodation in accommodations]), 200
 
 
+@accommodation_bp.route("/user", methods=["GET"])
+@jwt_required()
+def get_list_accommodations_by_user():
+    try:
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+        if not user:
+            return APIError(404, "Not authorized").to_response()
+        accommodations = get_all_accommodations_by_user(user_id)
+        return jsonify([accommodation.to_dict() for accommodation in accommodations]), 200
+    except Exception as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
+
+
 @accommodation_bp.route("/<int:id>", methods=["GET"])
 def get_accommodation(id):
     try:
@@ -103,7 +117,7 @@ def remove_accommodation(id):
         if not user:
             return APIError(404, "Not authorized").to_response()
         
-        delete_accommodation(id, user_id)
+        delete_accommodation(id, user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
         if "not found" in str(e).lower():

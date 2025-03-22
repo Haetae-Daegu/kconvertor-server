@@ -9,6 +9,8 @@ import os
 def get_all_accommodations():
     return Accommodation.query.filter_by(status="active").all()
 
+def get_all_accommodations_by_user(user_id):
+    return Accommodation.query.filter_by(host_id=user_id).all()
 
 def get_accommodation_by_id(accommodation_id):
     accommodation = Accommodation.query.get(accommodation_id)
