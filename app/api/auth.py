@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, verify_jwt_in_request
+from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
 from app.services.user_service import *
 from app.services.auth_service import *
 from pydantic import BaseModel, ValidationError
