@@ -14,23 +14,24 @@ from dotenv import load_dotenv
 from pathlib import Path
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
-
+from .config import config
 import os
 
 env_path = Path(__file__).parent / ".env"
 load_dotenv(env_path)
 
 
-def create_app():
+def create_app(config_name=None):
     app = Flask(__name__)
-    app.config.from_mapping(
-        SECRET_KEY=os.environ.get("SECRET_KEY"),
-        JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY"),
-        JWT_TOKEN_LOCATION=["headers"],
-        SQLALCHEMY_DATABASE_URI=os.environ.get("DATABASE_URL"),
-        JWT_ACCESS_TOKEN_EXPIRES=timedelta(hours=24)
-    )
-
+    
+    if not config_name:
+        config_name = os.environ.get('FLASK_ENV', 'default')
+    
+    app.config.from_object(config[config_name])
+    
+    if hasattr(config[config_name], 'init_app'):
+        config[config_name].init_app(app)
+    
     CORS(app)
     db.init_app(app)
     bcrypt.init_app(app)

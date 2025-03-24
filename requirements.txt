@@ -15,9 +15,10 @@ flask-cors
 Flask-Migrate
 Flask-JWT-Extended
 
+
 sqlalchemy-serializer
 pydantic
-
+pydantic[email]
 boto3
 
 geopy
