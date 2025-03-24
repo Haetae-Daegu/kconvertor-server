@@ -134,3 +134,7 @@ alembic downgrade -1
 - **`DATABASE_URL`**: PostgreSQL connection string (e.g., `postgresql://user:password@host/dbname`).
 - **`EXCHANGE_RATE_API_KEY`**: Your API key for the Exchange Rate API.
 - **`GOOGLE_MAPS_API_KEY`**: Your API key for the Google Maps API.
+- **`SPACE_ACCESS_KEY`**: Your API key for the Digital Ocean Spaces.
+- **`SPACE_SECRET_KEY`**: Your API key for the Digital Ocean Spaces.
+- **`SPACE_REGION`**: The region of the Digital Ocean Spaces.
+- **`SPACE_NAME`**: The name of the Digital Ocean Spaces.
