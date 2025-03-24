@@ -15,12 +15,12 @@ class S3Service(StorageInterface):
 
         self.s3_client = boto3.client(
             "s3",
-            endpoint_url=os.getenv("SPACE_ENDPOINT"),
-            aws_access_key_id=os.getenv("SPACE_ACCESS_KEY"),
-            aws_secret_access_key=os.getenv("SPACE_SECRET_KEY"),
-            region_name=os.getenv("SPACE_REGION"),
+            endpoint_url=os.environ.get("SPACE_ENDPOINT"),
+            aws_access_key_id=os.environ.get("SPACE_ACCESS_KEY"),
+            aws_secret_access_key=os.environ.get("SPACE_SECRET_KEY"),
+            region_name=os.environ.get("SPACE_REGION"),
         )
-        self.space_name = os.getenv("SPACE_NAME")
+        self.space_name = os.environ.get("SPACE_NAME")
 
     def upload_files(
         self, files: List[FileStorage], folder: str = "accommodations"
