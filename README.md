@@ -126,5 +126,11 @@ alembic downgrade -1
 - **`FLASK_APP`**: The main application file (e.g., `app.py`).
 - **`FLASK_RUN_HOST`**: Set to `0.0.0.0` to allow external access.
 - **`FLASK_RUN_PORT`**: Port for the application to run on, default is `5000`.
+- **`DB_HOST`**: Host for the database.
+- **`DB_PORT`**: Port for the database.
+- **`DB_USER`**: User for the database.
+- **`DB_PASSWORD`**: Password for the database.
+- **`DB_NAME`**: Name of the database.
 - **`DATABASE_URL`**: PostgreSQL connection string (e.g., `postgresql://user:password@host/dbname`).
 - **`EXCHANGE_RATE_API_KEY`**: Your API key for the Exchange Rate API.
+- **`GOOGLE_MAPS_API_KEY`**: Your API key for the Google Maps API.
