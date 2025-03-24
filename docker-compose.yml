@@ -11,3 +11,34 @@ services:
       FLASK_APP: app.py
       FLASK_RUN_HOST: 0.0.0.0
       FLASK_RUN_PORT: 5000
+      DATABASE_URL: ${DATABASE_URL}
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - kconvertor-network
+
+  db:
+    image: docker.io/library/postgres:14 # I use podman instead of docker => postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kconvertor-network
+    security_opt:
+      - label=disable
+
+networks:
+  kconvertor-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

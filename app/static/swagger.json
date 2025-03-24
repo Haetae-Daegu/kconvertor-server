@@ -1,57 +1,806 @@
 {
     "swagger": "2.0",
     "info": {
-      "title": "Access API",
-      "version": "1.0.0"
+        "title": "Haetae API",
+        "version": "1.0.0"
     },
     "paths": {
-        "/currency": {
-          "post": {
-            "description": "Returns a dict containing the conversion between euros to Korean wons",
-            "produces": [
-              "application/json"
-            ],
-            "parameters": [
-              {
-                "in": "body",
-                "name": "body",
-                "required": true,
-                "description": "Country for which the conversion rate is requested.",
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "from_currency": {
-                      "type": "string"
-                    },
-                    "to_currency": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "float"
+        "/auth/register": {
+            "post": {
+                "summary": "Register a new user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserRegister"
+                        }
                     }
-                  },
-                  "required": [
-                    "from_currency",
-                    "to_currency",
-                    "amount"
-                  ],
-                  "example": {
-                    "from_currency": "EUR",
-                    "to_currency": "KRW",
-                    "amount": 1
-                  }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    }
                 }
-              }
-            ],
-            "responses": {
-              "200": {
-                "description": "Successful operation"
-              },
-              "403": {
-                "description": "Forbidden: Access to the API is denied"
-              }
             }
-          }
+        },
+        "/auth/login": {
+            "post": {
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "summary": "Logout user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logout successful",
+                        "schema": {
+                            "$ref": "#/definitions/LogoutResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "summary": "Get current user information",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User information",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - invalid token"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/users/": {
+            "get": {
+                "summary": "List all users",
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/User"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "summary": "Get a specific user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the user to retrieve"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update a user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the user to update"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/UserUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - not your account"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the user to delete"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - not your account"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                }
+            }
+        },
+        "/accommodations": {
+            "get": {
+                "summary": "List all active accommodations",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Accommodation"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new accommodation",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AccommodationCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Accommodation created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Accommodation"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/accommodations/{id}": {
+            "get": {
+                "summary": "Get a specific accommodation",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the accommodation to retrieve"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "schema": {
+                            "$ref": "#/definitions/Accommodation"
+                        }
+                    },
+                    "404": {
+                        "description": "Accommodation not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an existing accommodation",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the accommodation to update"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AccommodationUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Accommodation updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Accommodation"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - not your accommodation"
+                    },
+                    "404": {
+                        "description": "Accommodation not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete an accommodation",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the accommodation to delete"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Accommodation deleted successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - not your accommodation"
+                    },
+                    "404": {
+                        "description": "Accommodation not found"
+                    }
+                }
+            }
+        },
+        "/accommodations/{id}/archive": {
+            "post": {
+                "summary": "Archive an accommodation",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the accommodation to archive"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Accommodation archived successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Accommodation"
+                        }
+                    },
+                    "404": {
+                        "description": "Accommodation not found"
+                    }
+                }
+            }
+        },
+        "/accommodations/user": {
+            "get": {
+                "summary": "Get accommodations by the current authenticated user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User's accommodations",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Accommodation"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "User": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "discord_username": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "instagram_username": {
+                    "type": "string"
+                },
+                "kakaotalk_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "UserRegister": {
+            "type": "object",
+            "required": ["username", "email", "password"],
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserLogin": {
+            "type": "object",
+            "required": ["email", "password"],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserUpdate": {
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "discord_username": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "instagram_username": {
+                    "type": "string"
+                },
+                "kakaotalk_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserCreate": {
+            "type": "object",
+            "required": ["username", "email", "password"],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 150
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                }
+            }
+        },
+        "UserResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserLoginResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "access_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "UserRegisterResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "LogoutResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "Accommodation": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "price_per_month": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "security_deposit": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "bedrooms": {
+                    "type": "integer"
+                },
+                "bathrooms": {
+                    "type": "integer"
+                },
+                "max_guests": {
+                    "type": "integer"
+                },
+                "minimum_stay": {
+                    "type": "integer"
+                },
+                "amenities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "house_rules": {
+                    "type": "string"
+                },
+                "host_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "latitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "longitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "archived"]
+                },
+                "image_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "AccommodationCreate": {
+            "type": "object",
+            "required": [
+                "title",
+                "description",
+                "price_per_month",
+                "location",
+                "bedrooms",
+                "bathrooms",
+                "max_guests"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "price_per_month": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "security_deposit": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "bedrooms": {
+                    "type": "integer"
+                },
+                "bathrooms": {
+                    "type": "integer"
+                },
+                "max_guests": {
+                    "type": "integer"
+                },
+                "minimum_stay": {
+                    "type": "integer"
+                },
+                "amenities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "house_rules": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "longitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "image_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "AccommodationUpdate": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "price_per_month": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "security_deposit": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "bedrooms": {
+                    "type": "integer"
+                },
+                "bathrooms": {
+                    "type": "integer"
+                },
+                "max_guests": {
+                    "type": "integer"
+                },
+                "minimum_stay": {
+                    "type": "integer"
+                },
+                "amenities": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "house_rules": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "longitude": {
+                    "type": "number",
+                    "format": "float"
+                },
+                "image_urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }
+
