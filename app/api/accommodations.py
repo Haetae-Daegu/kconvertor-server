@@ -45,6 +45,12 @@ def get_accommodation(id):
         return APIError(404, f"Error: Accommodation not found").to_response()
 
 
+@accommodation_bp.route("/S3", methods=["GET"])
+def get_s3_url():
+    storage_service = StorageFactory.get_storage_service(StorageType.S3)
+    print(storage_service.s3_client, flush=True)
+    return "OK", 200
+
 @accommodation_bp.route("/", methods=["POST"])
 @jwt_required()
 def create_new_accommodation():
@@ -61,6 +67,7 @@ def create_new_accommodation():
 
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
         image_urls = storage_service.upload_files(files)
+        print(image_urls, flush=True)
 
         data = json.loads(request.form["data"])
         data["image_urls"] = image_urls
