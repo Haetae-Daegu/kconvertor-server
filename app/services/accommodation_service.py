@@ -1,10 +1,9 @@
 from app.models.accommodation import Accommodation
 from app.database.database import db
 from werkzeug.exceptions import NotFound, Forbidden
-from geopy.geocoders import Nominatim
 import requests
 import os
-
+google_maps_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
 
 def get_all_accommodations():
     return Accommodation.query.filter_by(status="active").all()
@@ -84,9 +83,8 @@ def archive_accommodation(accommodation_id, host_id):
 
 
 def set_coordinates(accommodation):
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY")
     location = accommodation.location
-    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={location}&key={api_key}"
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?address={location}&key={google_maps_api_key}"
 
     try:
         response = requests.get(url)
