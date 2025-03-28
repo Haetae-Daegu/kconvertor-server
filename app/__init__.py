@@ -13,7 +13,6 @@ from app.security.security import bcrypt, jwt
 from dotenv import load_dotenv
 from pathlib import Path
 from flask_jwt_extended import JWTManager
-from datetime import timedelta
 from .config import config
 import os
 
@@ -23,15 +22,15 @@ load_dotenv(env_path)
 
 def create_app(config_name=None):
     app = Flask(__name__)
-    
+
     if not config_name:
-        config_name = os.environ.get('FLASK_ENV', 'default')
-    
+        config_name = os.environ.get("FLASK_ENV", "default")
+
     app.config.from_object(config[config_name])
-    
-    if hasattr(config[config_name], 'init_app'):
+
+    if hasattr(config[config_name], "init_app"):
         config[config_name].init_app(app)
-    
+
     CORS(app)
     db.init_app(app)
     bcrypt.init_app(app)
