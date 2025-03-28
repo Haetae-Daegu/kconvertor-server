@@ -47,7 +47,7 @@ class S3Service(StorageInterface):
                             "ContentType": file.content_type,
                         },
                     )
-                    image_url = f"https://{self.space_name}.{os.environ.get('SPACE_REGION')}.digitaloceanspaces.com/{s3_path}"
+                    image_url = f"https://{self.space_name}.{os.environ.get('SPACE_REGION')}.digitaloceanspaces.com/{folder}/{s3_path}"
                     image_urls.append(image_url)
 
                 except Exception as e:
