@@ -54,11 +54,11 @@ def modify_user(user_id):
             return APIError(400, "Error: Invalid data").to_response()
 
         user_data = UserUpdate(**data)
-        
+
         update_data = user_data.model_dump(exclude_unset=True)
-        
+
         user = update_user(user_id=user_id, data=update_data)
-        
+
         if not user:
             return APIError(404, f"Error: User not found").to_response()
         return (

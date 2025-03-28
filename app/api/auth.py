@@ -1,5 +1,9 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    verify_jwt_in_request,
+)
 from app.services.user_service import *
 from app.services.auth_service import *
 from pydantic import BaseModel, ValidationError
@@ -27,7 +31,7 @@ def get_me():
     try:
         verify_jwt_in_request()
         user_id = get_jwt_identity()
-        
+
         user = User.query.filter_by(id=int(user_id)).first()
 
         if user:
@@ -65,43 +69,49 @@ def register_user():
 def login_user():
     try:
         data = request.get_json()
-        
+
         if not data or "email" not in data or "password" not in data:
             return APIError(400, "Email and password are required").to_response()
-            
+
         email = data["email"]
         password = data["password"]
-        
+
         user = User.query.filter_by(email=email).first()
-        
+
         if not user:
             return APIError(401, "This user doesn't exist").to_response()
-        
+
         try:
-            if user.password.startswith('$2b$') or user.password.startswith('$2y$'):
+            if user.password.startswith("$2b$") or user.password.startswith("$2y$"):
                 from flask_bcrypt import Bcrypt
+
                 bcrypt = Bcrypt()
                 password_correct = bcrypt.check_password_hash(user.password, password)
             else:
                 password_correct = check_password_hash(user.password, password)
-                
+
             if not password_correct:
                 return APIError(401, "Invalid credentials").to_response()
-                
+
         except ValueError as e:
             print(f"Hash error: {str(e)}")
             if user.password != password:
                 return APIError(401, "Invalid credentials").to_response()
-        
+
         access_token = create_access_token(identity=str(user.id))
-        
-        return jsonify({
-            "id": user.id,
-            "email": user.email,
-            "username": user.username,
-            "access_token": access_token
-        }), 200
-        
+
+        return (
+            jsonify(
+                {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
+                    "access_token": access_token,
+                }
+            ),
+            200,
+        )
+
     except Exception as e:
         print(f"Login error: {str(e)}")
         return APIError(400, f"Error: {str(e)}").to_response()

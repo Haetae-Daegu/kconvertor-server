@@ -3,13 +3,17 @@ from app.database.database import db
 from werkzeug.exceptions import NotFound, Forbidden
 import requests
 import os
+
 google_maps_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+
 
 def get_all_accommodations():
     return Accommodation.query.filter_by(status="active").all()
 
+
 def get_all_accommodations_by_user(user_id):
     return Accommodation.query.filter_by(host_id=user_id).all()
+
 
 def get_accommodation_by_id(accommodation_id):
     accommodation = Accommodation.query.get(accommodation_id)
@@ -51,7 +55,7 @@ def create_accommodation(data):
 def update_accommodation(accommodation_id, data, user_id):
     accommodation = get_accommodation_by_id(accommodation_id)
     if accommodation.host_id != user_id:
-       raise Forbidden('Not authorized to update this accommodation')
+        raise Forbidden("Not authorized to update this accommodation")
 
     for key, value in data.items():
         setattr(accommodation, key, value)
@@ -65,7 +69,7 @@ def delete_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
     if accommodation.host_id != host_id:
-       raise Forbidden('Not authorized to delete this accommodation')
+        raise Forbidden("Not authorized to delete this accommodation")
 
     db.session.delete(accommodation)
     db.session.commit()
@@ -75,7 +79,7 @@ def archive_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
     if accommodation.host_id != host_id:
-       raise Forbidden('Not authorized to archive this accommodation')
+        raise Forbidden("Not authorized to archive this accommodation")
 
     accommodation.status = "archived"
     db.session.commit()

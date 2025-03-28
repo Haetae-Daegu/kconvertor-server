@@ -31,7 +31,10 @@ def get_list_accommodations_by_user():
         if not user:
             return APIError(404, "Not authorized").to_response()
         accommodations = get_all_accommodations_by_user(user_id)
-        return jsonify([accommodation.to_dict() for accommodation in accommodations]), 200
+        return (
+            jsonify([accommodation.to_dict() for accommodation in accommodations]),
+            200,
+        )
     except Exception as e:
         return APIError(400, f"Error: {str(e)}").to_response()
 
@@ -51,16 +54,17 @@ def get_s3_url():
     print(storage_service.s3_client, flush=True)
     return "OK", 200
 
+
 @accommodation_bp.route("/", methods=["POST"])
 @jwt_required()
 def create_new_accommodation():
     try:
         user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
-        
+
         if not user:
             return APIError(404, "Not authorized").to_response()
-        
+
         files = request.files.getlist("images[]")
         if not files or all(not file.filename for file in files):
             return APIError(400, "Error: No images selected").to_response()
@@ -77,12 +81,11 @@ def create_new_accommodation():
         accommodation = create_accommodation(
             accommodation_data.model_dump(exclude_unset=True),
         )
-        
-        
+
         accommodation_dict = accommodation.to_dict()
-        
+
         return jsonify(accommodation_dict), 201
-        
+
     except Exception as e:
         return APIError(400, f"Error: {str(e)}").to_response()
 
@@ -93,10 +96,10 @@ def modify_accommodation(id):
     try:
         user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
-        
+
         if not user:
             return APIError(404, "Not authorized").to_response()
-        
+
         data = request.get_json()
         if not data:
             return APIError(400, "Error: Invalid data").to_response()
@@ -120,10 +123,10 @@ def remove_accommodation(id):
     try:
         user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
-        
+
         if not user:
             return APIError(404, "Not authorized").to_response()
-        
+
         delete_accommodation(id, user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
@@ -138,7 +141,7 @@ def archive_accommodation(id):
     try:
         user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
-        
+
         if not user:
             return APIError(404, "Not authorized").to_response()
         accommodation = archive_accommodation(id, user_id)

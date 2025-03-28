@@ -21,11 +21,11 @@ def update_user(user_id, data):
     user = User.query.get(user_id)
     if not user:
         return None
-    
+
     for field, value in data.items():
         if hasattr(user, field):
             setattr(user, field, value)
-    
+
     db.session.commit()
     return user
 
