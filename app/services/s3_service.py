@@ -33,9 +33,10 @@ class S3Service(StorageInterface):
                     file.seek(0)
                     filename = secure_filename(file.filename)
                     folder = folder.strip("/").rstrip("/")
-
-                    s3_path = f"{folder}/{filename}"
-
+                    if folder == self.space_name:
+                        s3_path = filename
+                    else:
+                        s3_path = f"{folder}/{filename}"
 
                     self.s3_client.upload_fileobj(
                         file,
