@@ -3,15 +3,19 @@ from app.services.user_service import *
 from app.error import APIError
 from app.schemas.user import UserCreate, UserUpdate
 from pydantic import ValidationError
-
+from flask_jwt_extended import jwt_required
 
 user_bp = Blueprint("user", __name__, url_prefix="/users")
 
 
 @user_bp.route("/", methods=["GET"])
+@jwt_required()
 def list_users():
-    users = get_all_users()
-    return jsonify([user.to_dict() for user in users]), 200
+    try:
+        users = get_all_users()
+        return jsonify([user.to_dict() for user in users]), 200
+    except Exception as e:
+        return APIError(400, f"Error: {str(e)}").to_response()
 
 
 @user_bp.route("/<int:user_id>", methods=["GET"])
@@ -72,7 +76,11 @@ def modify_user(user_id):
 
 
 @user_bp.route("/<int:user_id>", methods=["DELETE"])
+@jwt_required()
 def remove_user(user_id):
-    if delete_user(user_id):
-        return jsonify({"message": "User deleted"}), 200
-    return APIError(404, f"Error: User not found").to_response()
+    try:
+        if delete_user(user_id):
+            return jsonify({"message": "User deleted"}), 200
+        return APIError(404, f"Error: User not found").to_response()
+    except Exception as e:
+        return APIError(400, f"Error: {str(e)}").to_response()

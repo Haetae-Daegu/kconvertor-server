@@ -101,6 +101,11 @@
         },
         "/users/": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "summary": "List all users",
                 "responses": {
                     "200": {
@@ -799,7 +804,9 @@
         "BearerAuth": {
             "type": "apiKey",
             "name": "Authorization",
-            "in": "header"
+            "in": "header",
+            "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            "x-tokenPrefix": "Bearer "
         }
     }
 }
