@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
+from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     create_access_token,
+    create_refresh_token,
     get_jwt_identity,
+    jwt_required,
     verify_jwt_in_request,
 )
 from app.services.user_service import *
@@ -11,6 +14,7 @@ from app.error import APIError
 from werkzeug.security import check_password_hash
 from flask_jwt_extended.exceptions import JWTExtendedException
 from jwt.exceptions import PyJWTError
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -83,7 +87,6 @@ def login_user():
 
         try:
             if user.password.startswith("$2b$") or user.password.startswith("$2y$"):
-                from flask_bcrypt import Bcrypt
 
                 bcrypt = Bcrypt()
                 password_correct = bcrypt.check_password_hash(user.password, password)
@@ -99,6 +102,7 @@ def login_user():
                 return APIError(401, "Invalid credentials").to_response()
 
         access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
 
         return (
             jsonify(
@@ -107,6 +111,7 @@ def login_user():
                     "email": user.email,
                     "username": user.username,
                     "access_token": access_token,
+                    "refresh_token": refresh_token,
                 }
             ),
             200,
@@ -114,6 +119,23 @@ def login_user():
 
     except Exception as e:
         print(f"Login error: {str(e)}")
+        return APIError(400, f"Error: {str(e)}").to_response()
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+def refresh_token():
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=int(user_id)).first()
+        
+        if not user:
+            return APIError(401, "Invalid credentials").to_response()
+        
+        access_token = create_access_token(identity=str(user.id), fresh=False)
+        return jsonify({"access_token": access_token}), 200
+    except Exception as e:
+        print(f"Refresh token error: {str(e)}")
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
