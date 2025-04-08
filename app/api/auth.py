@@ -61,6 +61,7 @@ def register_user():
         user_exists = User.query.filter_by(email=data["email"]).first()
 
         if user_exists is not None:
+            send_alert("Registration", f"Error: User already exists", AlertType.ERROR)
             return APIError(409, "Error: User already exists").to_response()
 
         new_user = register_data_user(data["email"], data["username"], data["password"])
@@ -68,6 +69,7 @@ def register_user():
         
         return jsonify({"id": new_user.id, "email": new_user.email})
     except ValidationError as error:
+        send_alert("Registration", f"Error: {error.errors()}", AlertType.ERROR)
         return APIError(400, error.errors()).to_response()
 
 
@@ -77,6 +79,7 @@ def login_user():
         data = request.get_json()
 
         if not data or "email" not in data or "password" not in data:
+            send_alert("Login", f"Error: Email and password are required", AlertType.ERROR)
             return APIError(400, "Email and password are required").to_response()
 
         email = data["email"]
@@ -101,6 +104,7 @@ def login_user():
         except ValueError as e:
             print(f"Hash error: {str(e)}")
             if user.password != password:
+                send_alert("Login", f"Error: Invalid credentials", AlertType.ERROR)
                 return APIError(401, "Invalid credentials").to_response()
 
         access_token = create_access_token(identity=str(user.id))
@@ -120,9 +124,8 @@ def login_user():
         )
 
     except Exception as e:
-        print(f"Login error: {str(e)}")
+        send_alert("Login", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
-
 
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh_token():
@@ -132,12 +135,13 @@ def refresh_token():
         user = User.query.filter_by(id=int(user_id)).first()
         
         if not user:
+            send_alert("Refresh token", f"Error: Invalid credentials", AlertType.ERROR)
             return APIError(401, "Invalid credentials").to_response()
         
         access_token = create_access_token(identity=str(user.id), fresh=False)
         return jsonify({"access_token": access_token}), 200
     except Exception as e:
-        print(f"Refresh token error: {str(e)}")
+        send_alert("Refresh token", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 

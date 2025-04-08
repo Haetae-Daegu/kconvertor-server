@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from app.services.alert_service import AlertType, send_alert
 from app.services.user_service import *
 from app.error import APIError
 from app.schemas.user import UserCreate, UserUpdate
@@ -22,6 +23,7 @@ def list_users():
 def get_user(user_id):
     user = get_user_by_id(user_id)
     if not user:
+        send_alert("Get User", f"Error: User not found", AlertType.ERROR)
         return APIError(404, f"Error: User not found").to_response()
     return jsonify(user.to_dict()), 200
 
@@ -45,8 +47,10 @@ def add_user():
             201,
         )
     except ValidationError as e:
+        send_alert("Create User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
     except Exception as e:
+        send_alert("Create User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
@@ -64,14 +68,17 @@ def modify_user(user_id):
         user = update_user(user_id=user_id, data=update_data)
 
         if not user:
+            send_alert("Modify User", f"Error: User not found", AlertType.ERROR)
             return APIError(404, f"Error: User not found").to_response()
         return (
             jsonify({"id": user.id, "username": user.username, "email": user.email}),
             200,
         )
     except ValidationError as e:
+        send_alert("Modify User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
     except Exception as e:
+        send_alert("Modify User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
@@ -80,7 +87,10 @@ def modify_user(user_id):
 def remove_user(user_id):
     try:
         if delete_user(user_id):
+            send_alert("Delete User", f"User {user_id} deleted", AlertType.INFO)
             return jsonify({"message": "User deleted"}), 200
+        send_alert("Delete User", f"Error: User not found", AlertType.ERROR)
         return APIError(404, f"Error: User not found").to_response()
     except Exception as e:
+        send_alert("Delete User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()

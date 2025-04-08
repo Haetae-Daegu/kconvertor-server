@@ -89,6 +89,7 @@ def create_new_accommodation():
         return jsonify(accommodation_dict), 201
 
     except Exception as e:
+        send_alert("Create Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
@@ -114,10 +115,13 @@ def modify_accommodation(id):
 
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:
+        send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
     except Exception as e:
         if "not found" in str(e).lower():
+            send_alert("Modify Accommodation", f"Error: Accommodation not found", AlertType.ERROR)
             return APIError(404, f"Error: Accommodation not found").to_response()
+        send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
@@ -136,7 +140,9 @@ def remove_accommodation(id):
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
         if "not found" in str(e).lower():
+            send_alert("Delete Accommodation", f"Error: Accommodation not found", AlertType.ERROR)
             return APIError(404, f"Error: Accommodation not found").to_response()
+        send_alert("Delete Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
 
 
