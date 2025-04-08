@@ -5,6 +5,7 @@ pytest-mock
 requests_mock
 python-dotenv
 beautifulsoup4
+discord-webhook
 psycopg2-binary
 
 flask

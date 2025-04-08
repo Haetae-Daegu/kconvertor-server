@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.services.accommodation_service import *
+from app.services.alert_service import AlertType, send_alert
 from app.services.user_service import *
 from app.error import APIError
 from app.schemas.accommodation import AccommodationCreate, AccommodationUpdate
@@ -9,7 +10,8 @@ import json
 from app.services.storage_factory import StorageFactory, StorageType
 from pathlib import Path
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
+import os
+client_url = os.getenv("CLIENT_URL")
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
@@ -71,7 +73,6 @@ def create_new_accommodation():
 
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
         image_urls = storage_service.upload_files(files)
-        print(image_urls, flush=True)
 
         data = json.loads(request.form["data"])
         data["image_urls"] = image_urls
@@ -83,6 +84,7 @@ def create_new_accommodation():
         )
 
         accommodation_dict = accommodation.to_dict()
+        send_alert("Accommodation", f"New accommodation created: [{accommodation.id}, {accommodation.title}] by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.SUCCESS)
 
         return jsonify(accommodation_dict), 201
 
@@ -108,6 +110,8 @@ def modify_accommodation(id):
         accommodation = update_accommodation(
             id, accommodation_data.model_dump(exclude_unset=True), user.id
         )
+        send_alert("Accommodation", f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.INFO)
+
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:
         return APIError(400, f"Error: {str(e)}").to_response()
@@ -127,6 +131,7 @@ def remove_accommodation(id):
         if not user:
             return APIError(404, "Not authorized").to_response()
 
+        send_alert("Accommodation", f"Accommodation {id} deleted by {user.username}", AlertType.INFO)
         delete_accommodation(id, user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:

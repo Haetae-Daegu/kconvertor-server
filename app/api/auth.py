@@ -9,6 +9,7 @@ from flask_jwt_extended import (
 )
 from app.services.user_service import *
 from app.services.auth_service import *
+from app.services.alert_service import AlertType, send_alert
 from pydantic import BaseModel, ValidationError
 from app.error import APIError
 from werkzeug.security import check_password_hash
@@ -63,7 +64,8 @@ def register_user():
             return APIError(409, "Error: User already exists").to_response()
 
         new_user = register_data_user(data["email"], data["username"], data["password"])
-
+        send_alert("Registration", f"New user registered: {new_user.email} | {new_user.username}", AlertType.INFO)
+        
         return jsonify({"id": new_user.id, "email": new_user.email})
     except ValidationError as error:
         return APIError(400, error.errors()).to_response()
