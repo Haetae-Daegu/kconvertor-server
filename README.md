@@ -138,3 +138,5 @@ alembic downgrade -1
 - **`SPACE_SECRET_KEY`**: Your API key for the Digital Ocean Spaces.
 - **`SPACE_REGION`**: The region of the Digital Ocean Spaces.
 - **`SPACE_NAME`**: The name of the Digital Ocean Spaces.
+- **`DISCORD_WEBHOOK_URL`**: The link of your Webhook on Discord (optional)
+- **`CLIENT_URL`**: The link of your frontend

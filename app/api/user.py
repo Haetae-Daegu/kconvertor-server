@@ -70,6 +70,7 @@ def modify_user(user_id):
         if not user:
             send_alert("Modify User", f"Error: User not found", AlertType.ERROR)
             return APIError(404, f"Error: User not found").to_response()
+        send_alert("Modify User", f"User {user.username} | {user.id} updated", AlertType.INFO)
         return (
             jsonify({"id": user.id, "username": user.username, "email": user.email}),
             200,
