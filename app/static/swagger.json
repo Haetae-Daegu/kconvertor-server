@@ -495,6 +495,53 @@
                     }
                 }
             }
+        },
+        "/accommodations/{id}/status": {
+            "put": {
+                "summary": "Update accommodation status",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "type": "integer",
+                        "description": "ID of the accommodation to update status"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/AccommodationStatusUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Accommodation status updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/Accommodation"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input data"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - not authorized to update this accommodation"
+                    },
+                    "404": {
+                        "description": "Accommodation not found"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -865,6 +912,17 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "AccommodationStatusUpdate": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": ["active", "archived"],
+                    "description": "New status for the accommodation"
                 }
             }
         }

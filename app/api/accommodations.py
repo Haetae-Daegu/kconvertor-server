@@ -141,6 +141,39 @@ def modify_accommodation(id):
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
 
+@accommodation_bp.route("/<int:id>/status", methods=["PUT"])
+@jwt_required()
+def modify_accommodation_status(id):
+    try:
+        user_id = get_jwt_identity()
+        user = get_user_by_id(user_id)
+
+        if not user:
+            send_alert("Update Accommodation Status", f"Error: Not authorized", AlertType.INFO)
+            return APIError(403, "Not authorized").to_response()
+       
+        data = request.get_json()
+        if not data:
+            send_alert("Update Accommodation Status", f"Error: Invalid data", AlertType.INFO)
+            return APIError(400, "Error: Invalid data").to_response()
+        
+        accommodation = update_accommodation_status(id, data, user)
+        send_alert(
+            "Accommodation",
+            f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} has been {accommodation.status}\n {client_url}/accommodation/{accommodation.id}",
+            AlertType.SUCCESS,
+        )
+        return jsonify(accommodation.to_dict()), 200
+
+
+    except Forbidden as e:
+        send_alert("Update Accommodation Status", f"{str(e)}", AlertType.INFO)
+        return APIError(403, "Not authorized to update this accommodation").to_response()
+
+    except Exception as e:
+        send_alert("Update Accommodation Status", f"Error: {str(e)}", AlertType.ERROR)
+        return APIError(400, f"Error on server").to_response()
+
 
 @accommodation_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
@@ -170,20 +203,3 @@ def remove_accommodation(id):
             return APIError(404, f"Error: Accommodation not found").to_response()
         send_alert("Delete Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
-
-
-@accommodation_bp.route("/<int:id>/archive", methods=["POST"])
-@jwt_required()
-def archive_accommodation(id):
-    try:
-        user_id = get_jwt_identity()
-        user = get_user_by_id(user_id)
-
-        if not user:
-            return APIError(404, "Not authorized").to_response()
-        accommodation = archive_accommodation(id, user_id)
-        return jsonify(accommodation.to_dict()), 200
-    except Exception as e:
-        if "not found" in str(e).lower():
-            return APIError(404, f"Error: Accommodation not found").to_response()
-        return APIError(400, f"Error: {str(e)}").to_response()

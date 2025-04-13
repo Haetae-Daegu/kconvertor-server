@@ -14,6 +14,14 @@ def get_all_accommodations():
 def get_all_accommodations_by_user(user_id):
     return Accommodation.query.filter_by(host_id=user_id).all()
 
+def is_accommodation_by_user(accommodation_id, user):
+    accommodation = Accommodation.query.get(accommodation_id)
+    if not accommodation:
+        raise NotFound("Accommodation not found")
+    if accommodation.host_id != user.id and user.role != "admin":
+        return False
+    return True
+
 
 def get_accommodation_by_id(accommodation_id):
     accommodation = Accommodation.query.get(accommodation_id)
@@ -64,6 +72,14 @@ def update_accommodation(accommodation_id, data, user_id):
     db.session.commit()
     return accommodation
 
+def update_accommodation_status(accommodation_id, data, user):
+
+    accommodation = get_accommodation_by_id(accommodation_id)
+    if not is_accommodation_by_user(accommodation_id, user):
+        raise Forbidden("Not authorized to update this accommodation")
+    accommodation.status = data["status"]
+    db.session.commit()
+    return accommodation
 
 def delete_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
