@@ -36,29 +36,9 @@ def create_app(config_name=None):
     bcrypt.init_app(app)
     jwt = JWTManager(app)
 
-    SWAGGER_URL = "/apidocs"
-    API_URL = "/static/swagger.json"
-
-    if config_name == "production":
-        swagger_ui_blueprint = get_swaggerui_blueprint(
-            SWAGGER_URL,
-            API_URL,
-            config={
-                "app_name": "Access API",
-                "swagger_ui_bundle_js": "//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js",
-                "swagger_ui_standalone_preset_js": "//unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js",
-                "swagger_ui_css": "//unpkg.com/swagger-ui-dist@3/swagger-ui.css",
-            },
-        )
-
-        @swagger_ui_blueprint.before_request
-        @jwt_required()
-        @role_required(["admin"])
-        def protect_swagger():
-            pass
-
-        app.register_blueprint(swagger_ui_blueprint)
-    else:
+    if config_name != "production":
+        SWAGGER_URL = "/apidocs"
+        API_URL = "/static/swagger.json"
         swagger_ui_blueprint = get_swaggerui_blueprint(
             SWAGGER_URL,
             API_URL,
