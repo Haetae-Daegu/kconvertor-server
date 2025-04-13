@@ -4,7 +4,6 @@ from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
     get_jwt_identity,
-    jwt_required,
     verify_jwt_in_request,
 )
 from app.services.user_service import *
@@ -44,13 +43,13 @@ def get_me():
         else:
             return APIError(404, "User not found").to_response()
     except JWTExtendedException as jwt_error:
-        print(f"Erreur JWT: {str(jwt_error)}")
+        send_alert("JWT error", f"Error: {str(jwt_error)}", AlertType.ERROR)
         return APIError(401, f"JWT error: {str(jwt_error)}").to_response()
     except PyJWTError as pyjwt_error:
-        print(f"Erreur PyJWT: {str(pyjwt_error)}")
+        send_alert("JWT error", f"Error: {str(pyjwt_error)}", AlertType.ERROR)
         return APIError(401, f"Token error: {str(pyjwt_error)}").to_response()
     except Exception as e:
-        print(f"Error in /auth/me endpoint: {str(e)}")
+        send_alert("JWT error", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(500, f"Internal server error: {str(e)}").to_response()
 
 
@@ -61,7 +60,7 @@ def register_user():
         user_exists = User.query.filter_by(email=data["email"]).first()
 
         if user_exists is not None:
-            send_alert("Registration", f"Error: User already exists", AlertType.ERROR)
+            send_alert("Registration", f"Error: User already exists", AlertType.INFO)
             return APIError(409, "Error: User already exists").to_response()
 
         new_user = register_data_user(data["email"], data["username"], data["password"])
@@ -71,6 +70,10 @@ def register_user():
     except ValidationError as error:
         send_alert("Registration", f"Error: {error.errors()}", AlertType.ERROR)
         return APIError(400, error.errors()).to_response()
+    except Exception as e:
+        send_alert("Registration", f"Error: {str(e)}", AlertType.ERROR)
+        return APIError(400, f"Error on server").to_response()
+    
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -79,7 +82,7 @@ def login_user():
         data = request.get_json()
 
         if not data or "email" not in data or "password" not in data:
-            send_alert("Login", f"Error: Email and password are required", AlertType.ERROR)
+            send_alert("Login", f"Error: Email and password are required", AlertType.INFO)
             return APIError(400, "Email and password are required").to_response()
 
         email = data["email"]
@@ -88,6 +91,7 @@ def login_user():
         user = User.query.filter_by(email=email).first()
 
         if not user:
+            send_alert("Login", f"Error: This user doesn't exist", AlertType.INFO)
             return APIError(401, "This user doesn't exist").to_response()
 
         try:
@@ -99,13 +103,16 @@ def login_user():
                 password_correct = check_password_hash(user.password, password)
 
             if not password_correct:
+                send_alert("Login", f"Error: Invalid credentials", AlertType.INFO)
                 return APIError(401, "Invalid credentials").to_response()
 
         except ValueError as e:
-            print(f"Hash error: {str(e)}")
             if user.password != password:
-                send_alert("Login", f"Error: Invalid credentials", AlertType.ERROR)
+                send_alert("Login", f"Error: Invalid credentials", AlertType.INFO)
                 return APIError(401, "Invalid credentials").to_response()
+        except Exception as e:
+            send_alert("Login", f"Error: {str(e)}", AlertType.ERROR)
+            return APIError(400, f"Error on server").to_response()
 
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
@@ -125,7 +132,7 @@ def login_user():
 
     except Exception as e:
         send_alert("Login", f"Error: {str(e)}", AlertType.ERROR)
-        return APIError(400, f"Error: {str(e)}").to_response()
+        return APIError(400, f"Error on server").to_response()
 
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh_token():
@@ -135,7 +142,7 @@ def refresh_token():
         user = User.query.filter_by(id=int(user_id)).first()
         
         if not user:
-            send_alert("Refresh token", f"Error: Invalid credentials", AlertType.ERROR)
+            send_alert("Refresh token", f"Error: Invalid credentials", AlertType.INFO)
             return APIError(401, "Invalid credentials").to_response()
         
         access_token = create_access_token(identity=str(user.id), fresh=False)

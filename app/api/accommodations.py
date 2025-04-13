@@ -31,6 +31,7 @@ def get_list_accommodations_by_user():
         user_id = get_jwt_identity()
         user = get_user_by_id(user_id)
         if not user:
+            send_alert("Get Accommodations", f"Error: User not found", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
         accommodations = get_all_accommodations_by_user(user_id)
         return (
@@ -38,7 +39,8 @@ def get_list_accommodations_by_user():
             200,
         )
     except Exception as e:
-        return APIError(400, f"Error: {str(e)}").to_response()
+        send_alert("Get Accommodations", f"Error: {str(e)}", AlertType.ERROR)
+        return APIError(400, f"Error on server").to_response()
 
 
 @accommodation_bp.route("/<int:id>", methods=["GET"])
@@ -47,14 +49,9 @@ def get_accommodation(id):
         accommodation = get_accommodation_by_id(id)
         return jsonify(accommodation.to_dict()), 200
     except:
+        send_alert("Get Accommodation", f"Error: Accommodation not found", AlertType.INFO)
         return APIError(404, f"Error: Accommodation not found").to_response()
 
-
-@accommodation_bp.route("/S3", methods=["GET"])
-def get_s3_url():
-    storage_service = StorageFactory.get_storage_service(StorageType.S3)
-    print(storage_service.s3_client, flush=True)
-    return "OK", 200
 
 
 @accommodation_bp.route("/", methods=["POST"])
@@ -65,10 +62,12 @@ def create_new_accommodation():
         user = get_user_by_id(user_id)
 
         if not user:
+            send_alert("Create Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
         files = request.files.getlist("images[]")
         if not files or all(not file.filename for file in files):
+            send_alert("Create Accommodation", f"Error: No images selected", AlertType.INFO)
             return APIError(400, "Error: No images selected").to_response()
 
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
@@ -101,49 +100,53 @@ def modify_accommodation(id):
         user = get_user_by_id(user_id)
 
         if not user:
+            send_alert("Modify Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
         data = request.get_json()
         if not data:
+            send_alert("Modify Accommodation", f"Error: Invalid data", AlertType.INFO)
             return APIError(400, "Error: Invalid data").to_response()
 
         accommodation_data = AccommodationUpdate(**data)
         accommodation = update_accommodation(
             id, accommodation_data.model_dump(exclude_unset=True), user.id
         )
-        send_alert("Accommodation", f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.INFO)
+        send_alert("Accommodation", f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.SUCCESS)
 
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
-        return APIError(400, f"Error: {str(e)}").to_response()
+        return APIError(400, f"Error on server").to_response()
     except Exception as e:
         if "not found" in str(e).lower():
             send_alert("Modify Accommodation", f"Error: Accommodation not found", AlertType.ERROR)
             return APIError(404, f"Error: Accommodation not found").to_response()
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
-        return APIError(400, f"Error: {str(e)}").to_response()
+        return APIError(400, f"Error on server").to_response()
 
 
 @accommodation_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def remove_accommodation(id):
     try:
-        user_id = get_jwt_identity()
-        user = get_user_by_id(user_id)
+        current_user_id = get_jwt_identity()
+        current_user = get_user_by_id(current_user_id)
 
-        if not user:
+        if not current_user and current_user.role != "admin":
+            send_alert("Delete Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
-        send_alert("Accommodation", f"Accommodation {id} deleted by {user.username}", AlertType.INFO)
-        delete_accommodation(id, user.id)
+
+        send_alert("Accommodation", f"Accommodation {id} deleted by {current_user.username}", AlertType.INFO)
+        delete_accommodation(id, current_user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
         if "not found" in str(e).lower():
-            send_alert("Delete Accommodation", f"Error: Accommodation not found", AlertType.ERROR)
+            send_alert("Delete Accommodation", f"Error: Accommodation not found", AlertType.INFO)
             return APIError(404, f"Error: Accommodation not found").to_response()
         send_alert("Delete Accommodation", f"Error: {str(e)}", AlertType.ERROR)
-        return APIError(400, f"Error: {str(e)}").to_response()
+        return APIError(400, f"Error on server").to_response()
 
 
 @accommodation_bp.route("/<int:id>/archive", methods=["POST"])

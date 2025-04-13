@@ -9,10 +9,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from app.database.database import db
-from app.security.security import bcrypt, jwt
+from app.security.security import bcrypt, jwt, role_required
 from dotenv import load_dotenv
 from pathlib import Path
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, jwt_required
 from .config import config
 import os
 
@@ -38,10 +38,33 @@ def create_app(config_name=None):
 
     SWAGGER_URL = "/apidocs"
     API_URL = "/static/swagger.json"
-    swagger_ui_blueprint = get_swaggerui_blueprint(
-        SWAGGER_URL, API_URL, config={"app_name": "Access API"}
-    )
-    app.register_blueprint(swagger_ui_blueprint)
+    
+    if config_name == "production":
+        swagger_ui_blueprint = get_swaggerui_blueprint(
+            SWAGGER_URL,
+            API_URL,
+            config={
+                "app_name": "Access API",
+                "swagger_ui_bundle_js": "//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js",
+                "swagger_ui_standalone_preset_js": "//unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js",
+                "swagger_ui_css": "//unpkg.com/swagger-ui-dist@3/swagger-ui.css",
+            },
+        )
+        
+        @swagger_ui_blueprint.before_request
+        @jwt_required()
+        @role_required(["admin"])
+        def protect_swagger():
+            pass
+            
+        app.register_blueprint(swagger_ui_blueprint)
+    else:
+        swagger_ui_blueprint = get_swaggerui_blueprint(
+            SWAGGER_URL,
+            API_URL,
+            config={"app_name": "Access API"},
+        )
+        app.register_blueprint(swagger_ui_blueprint)
 
     app.register_blueprint(currency_bp)
     app.register_blueprint(graph_bp)

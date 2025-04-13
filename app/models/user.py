@@ -12,6 +12,7 @@ class User(db.Model):
     phone_number = db.Column(db.String(20), nullable=True)
     instagram_username = db.Column(db.String(100), nullable=True)
     kakaotalk_id = db.Column(db.String(100), nullable=True)
+    role = db.Column(db.String(20), default="user")
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     updated_at = db.Column(
         db.DateTime,
@@ -28,6 +29,7 @@ class User(db.Model):
             "phone_number": self.phone_number,
             "instagram_username": self.instagram_username,
             "kakaotalk_id": self.kakaotalk_id,
+            "role": self.role,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
