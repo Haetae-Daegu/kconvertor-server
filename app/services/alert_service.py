@@ -4,6 +4,7 @@ from enum import Enum
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
+
 class AlertType(Enum):
     INFO = "03b2f8"
     WARNING = "ffff00"

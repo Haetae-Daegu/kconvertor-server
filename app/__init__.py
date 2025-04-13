@@ -38,7 +38,7 @@ def create_app(config_name=None):
 
     SWAGGER_URL = "/apidocs"
     API_URL = "/static/swagger.json"
-    
+
     if config_name == "production":
         swagger_ui_blueprint = get_swaggerui_blueprint(
             SWAGGER_URL,
@@ -50,13 +50,13 @@ def create_app(config_name=None):
                 "swagger_ui_css": "//unpkg.com/swagger-ui-dist@3/swagger-ui.css",
             },
         )
-        
+
         @swagger_ui_blueprint.before_request
         @jwt_required()
         @role_required(["admin"])
         def protect_swagger():
             pass
-            
+
         app.register_blueprint(swagger_ui_blueprint)
     else:
         swagger_ui_blueprint = get_swaggerui_blueprint(

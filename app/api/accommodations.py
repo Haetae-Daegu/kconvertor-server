@@ -11,6 +11,7 @@ from app.services.storage_factory import StorageFactory, StorageType
 from pathlib import Path
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import os
+
 client_url = os.getenv("CLIENT_URL")
 env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
@@ -49,9 +50,10 @@ def get_accommodation(id):
         accommodation = get_accommodation_by_id(id)
         return jsonify(accommodation.to_dict()), 200
     except:
-        send_alert("Get Accommodation", f"Error: Accommodation not found", AlertType.INFO)
+        send_alert(
+            "Get Accommodation", f"Error: Accommodation not found", AlertType.INFO
+        )
         return APIError(404, f"Error: Accommodation not found").to_response()
-
 
 
 @accommodation_bp.route("/", methods=["POST"])
@@ -67,7 +69,9 @@ def create_new_accommodation():
 
         files = request.files.getlist("images[]")
         if not files or all(not file.filename for file in files):
-            send_alert("Create Accommodation", f"Error: No images selected", AlertType.INFO)
+            send_alert(
+                "Create Accommodation", f"Error: No images selected", AlertType.INFO
+            )
             return APIError(400, "Error: No images selected").to_response()
 
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
@@ -83,7 +87,11 @@ def create_new_accommodation():
         )
 
         accommodation_dict = accommodation.to_dict()
-        send_alert("Accommodation", f"New accommodation created: [{accommodation.id}, {accommodation.title}] by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.SUCCESS)
+        send_alert(
+            "Accommodation",
+            f"New accommodation created: [{accommodation.id}, {accommodation.title}] by {user.username} \n {client_url}/accommodation/{accommodation.id}",
+            AlertType.SUCCESS,
+        )
 
         return jsonify(accommodation_dict), 201
 
@@ -112,7 +120,11 @@ def modify_accommodation(id):
         accommodation = update_accommodation(
             id, accommodation_data.model_dump(exclude_unset=True), user.id
         )
-        send_alert("Accommodation", f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}", AlertType.SUCCESS)
+        send_alert(
+            "Accommodation",
+            f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}",
+            AlertType.SUCCESS,
+        )
 
         return jsonify(accommodation.to_dict()), 200
     except ValidationError as e:
@@ -120,7 +132,11 @@ def modify_accommodation(id):
         return APIError(400, f"Error on server").to_response()
     except Exception as e:
         if "not found" in str(e).lower():
-            send_alert("Modify Accommodation", f"Error: Accommodation not found", AlertType.ERROR)
+            send_alert(
+                "Modify Accommodation",
+                f"Error: Accommodation not found",
+                AlertType.ERROR,
+            )
             return APIError(404, f"Error: Accommodation not found").to_response()
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
@@ -137,13 +153,20 @@ def remove_accommodation(id):
             send_alert("Delete Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
-
-        send_alert("Accommodation", f"Accommodation {id} deleted by {current_user.username}", AlertType.INFO)
+        send_alert(
+            "Accommodation",
+            f"Accommodation {id} deleted by {current_user.username}",
+            AlertType.INFO,
+        )
         delete_accommodation(id, current_user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
     except Exception as e:
         if "not found" in str(e).lower():
-            send_alert("Delete Accommodation", f"Error: Accommodation not found", AlertType.INFO)
+            send_alert(
+                "Delete Accommodation",
+                f"Error: Accommodation not found",
+                AlertType.INFO,
+            )
             return APIError(404, f"Error: Accommodation not found").to_response()
         send_alert("Delete Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()

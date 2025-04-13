@@ -64,8 +64,12 @@ def register_user():
             return APIError(409, "Error: User already exists").to_response()
 
         new_user = register_data_user(data["email"], data["username"], data["password"])
-        send_alert("Registration", f"New user registered: {new_user.email} | {new_user.username}", AlertType.INFO)
-        
+        send_alert(
+            "Registration",
+            f"New user registered: {new_user.email} | {new_user.username}",
+            AlertType.INFO,
+        )
+
         return jsonify({"id": new_user.id, "email": new_user.email})
     except ValidationError as error:
         send_alert("Registration", f"Error: {error.errors()}", AlertType.ERROR)
@@ -73,7 +77,6 @@ def register_user():
     except Exception as e:
         send_alert("Registration", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
-    
 
 
 @auth_bp.route("/login", methods=["POST"])
@@ -82,7 +85,9 @@ def login_user():
         data = request.get_json()
 
         if not data or "email" not in data or "password" not in data:
-            send_alert("Login", f"Error: Email and password are required", AlertType.INFO)
+            send_alert(
+                "Login", f"Error: Email and password are required", AlertType.INFO
+            )
             return APIError(400, "Email and password are required").to_response()
 
         email = data["email"]
@@ -134,17 +139,18 @@ def login_user():
         send_alert("Login", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
 
+
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh_token():
     try:
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=int(user_id)).first()
-        
+
         if not user:
             send_alert("Refresh token", f"Error: Invalid credentials", AlertType.INFO)
             return APIError(401, "Invalid credentials").to_response()
-        
+
         access_token = create_access_token(identity=str(user.id), fresh=False)
         return jsonify({"access_token": access_token}), 200
     except Exception as e:
