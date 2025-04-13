@@ -18,6 +18,8 @@ services:
       - db
     networks:
       - kconvertor-network
+    volumes:
+      - ./migrations:/app/migrations
 
   db:
     image: docker.io/library/postgres:14 # I use podman instead of docker => postgres:14
