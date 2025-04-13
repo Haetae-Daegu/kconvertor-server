@@ -9,6 +9,10 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    @classmethod
+    def init_app(cls, app):
+        pass
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
