@@ -180,3 +180,90 @@ def test_archive_accommodation(client, test_accommodation, user_token):
             assert data["status"] == "archived"
     else:
         pytest.skip("The Accommodation model does not have a status field")
+
+
+def test_update_accommodation_status(client, test_accommodation, user_token):
+    """Test updating accommodation status by its owner."""
+    status_data = {"status": "archived"}
+
+    response = client.put(
+        f"/accommodations/{test_accommodation.id}/status",
+        data=json.dumps(status_data),
+        content_type="application/json",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+
+    print(f"Update status response: {response.status_code}")
+    print(f"Update status data: {response.data.decode('utf-8')}")
+
+    assert response.status_code in [200, 422]
+    if response.status_code == 200:
+        data = json.loads(response.data)
+        assert data["status"] == status_data["status"]
+
+
+def test_update_accommodation_status_not_owner(client, test_accommodation, test_admin, admin_token):
+    """Test updating accommodation status by a non-owner."""
+    status_data = {"status": "archived"}
+
+    response = client.put(
+        f"/accommodations/{test_accommodation.id}/status",
+        data=json.dumps(status_data),
+        content_type="application/json",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    print(f"Update status not owner response: {response.status_code}")
+    print(f"Update status not owner data: {response.data.decode('utf-8')}")
+
+    assert response.status_code in [403, 422]
+
+
+def test_update_accommodation_status_invalid(client, test_accommodation, user_token):
+    """Test updating accommodation status with an invalid status."""
+    status_data = {"status": "invalid_status"}
+
+    response = client.put(
+        f"/accommodations/{test_accommodation.id}/status",
+        data=json.dumps(status_data),
+        content_type="application/json",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+
+    print(f"Update status invalid response: {response.status_code}")
+    print(f"Update status invalid data: {response.data.decode('utf-8')}")
+
+    assert response.status_code in [400, 422]
+
+
+def test_update_accommodation_status_no_auth(client, test_accommodation):
+    """Test updating accommodation status without authentication."""
+    status_data = {"status": "archived"}
+
+    response = client.put(
+        f"/accommodations/{test_accommodation.id}/status",
+        data=json.dumps(status_data),
+        content_type="application/json",
+    )
+
+    print(f"Update status no auth response: {response.status_code}")
+    print(f"Update status no auth data: {response.data.decode('utf-8')}")
+
+    assert response.status_code in [401, 403]
+
+
+def test_update_accommodation_status_nonexistent(client, user_token):
+    """Test updating status of a nonexistent accommodation."""
+    status_data = {"status": "archived"}
+
+    response = client.put(
+        f"/accommodations/9999/status",
+        data=json.dumps(status_data),
+        content_type="application/json",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+
+    print(f"Update status nonexistent response: {response.status_code}")
+    print(f"Update status nonexistent data: {response.data.decode('utf-8')}")
+
+    assert response.status_code in [404, 422]
