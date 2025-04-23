@@ -44,6 +44,7 @@ class AccommodationUpdate(BaseModel):
     house_rules: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    image_urls: Optional[List[str]] = None
 
 
 class AccommodationResponse(AccommodationBase):

@@ -3,6 +3,8 @@ from app.database.database import db
 from werkzeug.exceptions import NotFound, Forbidden
 import requests
 import os
+from app.services.alert_service import AlertType, send_alert
+from app.services.storage_factory import StorageFactory, StorageType
 
 google_maps_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
 
@@ -123,3 +125,25 @@ def set_coordinates(accommodation):
     except Exception as e:
         print(f"Error calling API: {e}")
         raise
+
+def update_accommodation_with_images(accommodation_id, data, files, user_id):
+    accommodation = get_accommodation_by_id(accommodation_id)
+
+    if accommodation.host_id != user_id:
+        send_alert("Update Accommodation", f"Not authorized to update this accommodation", AlertType.INFO)
+        raise Forbidden("Not authorized to update this accommodation")
+    
+    if files and any(file.filename for file in files):
+        storage_service = StorageFactory.get_storage_service(StorageType.S3)
+        new_image_urls = storage_service.upload_files(files)
+        
+        if 'image_urls' in data:
+            data['image_urls'] = data['image_urls'] + new_image_urls
+            send_alert("Update Accommodation", f"list of images: {new_image_urls}", AlertType.INFO)
+    
+    for key, value in data.items():
+        setattr(accommodation, key, value)
+
+    set_coordinates(accommodation)
+    db.session.commit()
+    return accommodation

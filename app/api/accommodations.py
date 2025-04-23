@@ -111,15 +111,27 @@ def modify_accommodation(id):
             send_alert("Modify Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
-        data = request.get_json()
+        data = None
+        if 'data' in request.form:
+            data = json.loads(request.form['data'])
+        else:
+            data = request.get_json()
+        
         if not data:
-            send_alert("Modify Accommodation", f"Error: Invalid data", AlertType.INFO)
+            send_alert("Modify Accommodation", "Error: Invalid data", AlertType.INFO)
             return APIError(400, "Error: Invalid data").to_response()
 
         accommodation_data = AccommodationUpdate(**data)
-        accommodation = update_accommodation(
-            id, accommodation_data.model_dump(exclude_unset=True), user.id
+        
+        files = request.files.getlist("images[]")
+        
+        accommodation = update_accommodation_with_images(
+            id, 
+            accommodation_data.model_dump(exclude_unset=True), 
+            files, 
+            user.id
         )
+        
         send_alert(
             "Accommodation",
             f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}",
