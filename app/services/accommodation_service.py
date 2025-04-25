@@ -10,7 +10,7 @@ google_maps_api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
 
 
 def get_all_accommodations():
-    return Accommodation.query.filter_by(status="active").all()
+    return Accommodation.query.filter_by(status="active").order_by(Accommodation.created_at.desc()).all()
 
 
 def get_all_accommodations_by_user(user_id):
