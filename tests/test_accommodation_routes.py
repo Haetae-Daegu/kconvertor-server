@@ -202,7 +202,9 @@ def test_update_accommodation_status(client, test_accommodation, user_token):
         assert data["status"] == status_data["status"]
 
 
-def test_update_accommodation_status_not_owner(client, test_accommodation, test_admin, admin_token):
+def test_update_accommodation_status_not_owner(
+    client, test_accommodation, test_admin, admin_token
+):
     """Test updating accommodation status by a non-owner."""
     status_data = {"status": "archived"}
 

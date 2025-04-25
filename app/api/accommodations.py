@@ -68,33 +68,24 @@ def create_new_accommodation():
             return APIError(404, "Not authorized").to_response()
 
         files = request.files.getlist("images[]")
-        if not files or all(not file.filename for file in files):
-            send_alert(
-                "Create Accommodation", f"Error: No images selected", AlertType.INFO
-            )
-            return APIError(400, "Error: No images selected").to_response()
-
-        storage_service = StorageFactory.get_storage_service(StorageType.S3)
-        image_urls = storage_service.upload_files(files)
-
         data = json.loads(request.form["data"])
-        data["image_urls"] = image_urls
-        data["host_id"] = user_id
-
         accommodation_data = AccommodationCreate(**data)
-        accommodation = create_accommodation(
-            accommodation_data.model_dump(exclude_unset=True),
+
+        accommodation = create_accommodation_with_images(
+            accommodation_data.model_dump(exclude_unset=True), files, user_id
         )
 
-        accommodation_dict = accommodation.to_dict()
         send_alert(
             "Accommodation",
             f"New accommodation created: [{accommodation.id}, {accommodation.title}] by {user.username} \n {client_url}/accommodation/{accommodation.id}",
             AlertType.SUCCESS,
         )
 
-        return jsonify(accommodation_dict), 201
+        return jsonify(accommodation.to_dict()), 201
 
+    except ValueError as e:
+        send_alert("Create Accommodation", f"Error: {str(e)}", AlertType.INFO)
+        return APIError(400, f"Error: {str(e)}").to_response()
     except Exception as e:
         send_alert("Create Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
@@ -112,26 +103,22 @@ def modify_accommodation(id):
             return APIError(404, "Not authorized").to_response()
 
         data = None
-        if 'data' in request.form:
-            data = json.loads(request.form['data'])
+        if "data" in request.form:
+            data = json.loads(request.form["data"])
         else:
             data = request.get_json()
-        
+
         if not data:
             send_alert("Modify Accommodation", "Error: Invalid data", AlertType.INFO)
             return APIError(400, "Error: Invalid data").to_response()
 
         accommodation_data = AccommodationUpdate(**data)
-        
         files = request.files.getlist("images[]")
-        
+
         accommodation = update_accommodation_with_images(
-            id, 
-            accommodation_data.model_dump(exclude_unset=True), 
-            files, 
-            user.id
+            id, accommodation_data.model_dump(exclude_unset=True), files, user.id
         )
-        
+
         send_alert(
             "Accommodation",
             f"Accommodation [{accommodation.id}, {accommodation.title}] updated by {user.username} \n {client_url}/accommodation/{accommodation.id}",
@@ -153,6 +140,7 @@ def modify_accommodation(id):
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
 
+
 @accommodation_bp.route("/<int:id>/status", methods=["PUT"])
 @jwt_required()
 def modify_accommodation_status(id):
@@ -161,14 +149,18 @@ def modify_accommodation_status(id):
         user = get_user_by_id(user_id)
 
         if not user:
-            send_alert("Update Accommodation Status", f"Error: Not authorized", AlertType.INFO)
+            send_alert(
+                "Update Accommodation Status", f"Error: Not authorized", AlertType.INFO
+            )
             return APIError(403, "Not authorized").to_response()
-       
+
         data = request.get_json()
         if not data:
-            send_alert("Update Accommodation Status", f"Error: Invalid data", AlertType.INFO)
+            send_alert(
+                "Update Accommodation Status", f"Error: Invalid data", AlertType.INFO
+            )
             return APIError(400, "Error: Invalid data").to_response()
-        
+
         accommodation = update_accommodation_status(id, data, user)
         send_alert(
             "Accommodation",
@@ -177,10 +169,11 @@ def modify_accommodation_status(id):
         )
         return jsonify(accommodation.to_dict()), 200
 
-
     except Forbidden as e:
         send_alert("Update Accommodation Status", f"{str(e)}", AlertType.INFO)
-        return APIError(403, "Not authorized to update this accommodation").to_response()
+        return APIError(
+            403, "Not authorized to update this accommodation"
+        ).to_response()
 
     except Exception as e:
         send_alert("Update Accommodation Status", f"Error: {str(e)}", AlertType.ERROR)

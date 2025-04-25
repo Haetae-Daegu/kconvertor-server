@@ -16,6 +16,7 @@ def get_all_accommodations():
 def get_all_accommodations_by_user(user_id):
     return Accommodation.query.filter_by(host_id=user_id).all()
 
+
 def is_accommodation_by_user(accommodation_id, user):
     accommodation = Accommodation.query.get(accommodation_id)
     if not accommodation:
@@ -74,6 +75,7 @@ def update_accommodation(accommodation_id, data, user_id):
     db.session.commit()
     return accommodation
 
+
 def update_accommodation_status(accommodation_id, data, user):
 
     accommodation = get_accommodation_by_id(accommodation_id)
@@ -82,6 +84,7 @@ def update_accommodation_status(accommodation_id, data, user):
     accommodation.status = data["status"]
     db.session.commit()
     return accommodation
+
 
 def delete_accommodation(accommodation_id, host_id):
     accommodation = get_accommodation_by_id(accommodation_id)
@@ -126,24 +129,55 @@ def set_coordinates(accommodation):
         print(f"Error calling API: {e}")
         raise
 
+
 def update_accommodation_with_images(accommodation_id, data, files, user_id):
     accommodation = get_accommodation_by_id(accommodation_id)
 
     if accommodation.host_id != user_id:
-        send_alert("Update Accommodation", f"Not authorized to update this accommodation", AlertType.INFO)
+        send_alert(
+            "Update Accommodation",
+            f"Not authorized to update this accommodation",
+            AlertType.INFO,
+        )
         raise Forbidden("Not authorized to update this accommodation")
-    
+
     if files and any(file.filename for file in files):
         storage_service = StorageFactory.get_storage_service(StorageType.S3)
         new_image_urls = storage_service.upload_files(files)
-        
-        if 'image_urls' in data:
-            data['image_urls'] = data['image_urls'] + new_image_urls
-            send_alert("Update Accommodation", f"list of images: {new_image_urls}", AlertType.INFO)
-    
+
+        if "image_urls" in data:
+            data["image_urls"] = data["image_urls"] + new_image_urls
+            send_alert(
+                "Update Accommodation",
+                f"list of images: {new_image_urls}",
+                AlertType.INFO,
+            )
+
     for key, value in data.items():
         setattr(accommodation, key, value)
 
     set_coordinates(accommodation)
     db.session.commit()
+    return accommodation
+
+
+def create_accommodation_with_images(data, files, user_id):
+    if not files or not any(file.filename for file in files):
+        send_alert("Create Accommodation", f"Error: No images selected", AlertType.INFO)
+        raise ValueError("No images selected")
+
+    storage_service = StorageFactory.get_storage_service(StorageType.S3)
+    image_urls = storage_service.upload_files(files)
+
+    data["image_urls"] = image_urls
+    data["host_id"] = user_id
+
+    accommodation = create_accommodation(data)
+
+    send_alert(
+        "Create Accommodation",
+        f"New accommodation created with {len(image_urls)} images",
+        AlertType.INFO,
+    )
+
     return accommodation
