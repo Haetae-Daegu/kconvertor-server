@@ -15,7 +15,6 @@ from werkzeug.security import check_password_hash
 from flask_jwt_extended.exceptions import JWTExtendedException
 from jwt.exceptions import PyJWTError
 
-
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 

@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-sed -i "s|sqlalchemy.url = .*|sqlalchemy.url = postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}|" alembic.ini
-
 echo "Waiting for PostgreSQL..."
 until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\q'; do
   echo "PostgreSQL is not available - waiting..."
@@ -11,22 +9,24 @@ done
 
 echo "PostgreSQL is available"
 
-PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c "
-DROP TABLE IF EXISTS alembic_version;
-"
+# Safety net for the one-time switch to Alembic: an existing database that was
+# never stamped must not go through "upgrade head", which would try to recreate
+# the tables. See docs/RUNBOOK.md, "Database migrations".
+q() { PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "$1"; }
+HAS_TABLES=$(q "SELECT to_regclass('public.users') IS NOT NULL")
+HAS_VERSION=$(q "SELECT to_regclass('public.alembic_version') IS NOT NULL")
+VERSION_ROWS=0
+if [ "$HAS_VERSION" = "t" ]; then
+  VERSION_ROWS=$(q "SELECT count(*) FROM alembic_version")
+fi
+if [ "$HAS_TABLES" = "t" ] && [ "$VERSION_ROWS" = "0" ]; then
+  echo "ERROR: tables exist but the database is not stamped by Alembic."
+  echo "Run once: docker compose run --rm --entrypoint alembic app stamp 0001_baseline"
+  exit 1
+fi
 
-echo "Creating tables"
-python -c "
-from app import create_app
-from app.database.database import db
-app = create_app()
-with app.app_context():
-    db.create_all()
-    print('Tables created successfully!')
-"
-
-echo "Stamp migrations"
-alembic stamp head
+echo "Applying migrations"
+alembic upgrade head
 
 echo "Starting Flask application..."
 flask run --host=0.0.0.0 
