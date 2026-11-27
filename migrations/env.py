@@ -1,6 +1,8 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+import os
+
+from sqlalchemy import create_engine
 from sqlalchemy import pool
 
 from alembic import context
@@ -8,10 +10,30 @@ from alembic import context
 import sys
 from os.path import dirname, abspath
 
-sys.path.insert(0, dirname(dirname(abspath(__file__))))
+ROOT_DIR = dirname(dirname(abspath(__file__)))
+sys.path.insert(0, ROOT_DIR)
+
+from dotenv import load_dotenv
+
+# Running alembic from the host: read the repo-root .env. Inside Docker the
+# variables are already set by docker-compose and are not overridden.
+load_dotenv(os.path.join(ROOT_DIR, ".env"))
+
 from app.database.database import db
 
+# Import every model so autogenerate sees all tables.
+from app.models.user import User  # noqa: F401
+from app.models.accommodation import Accommodation  # noqa: F401
+
 config = context.config
+
+
+def get_database_url() -> str:
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError("DATABASE_URL is not set")
+    return url
+
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -31,7 +53,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -50,11 +72,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    connectable = create_engine(get_database_url(), poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

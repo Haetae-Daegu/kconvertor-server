@@ -1,12 +1,12 @@
 import pytest
 import requests_mock
 
-from app.app import create_app
+from app import create_app
 
 
 @pytest.fixture
 def client():
-    app = create_app()
+    app = create_app("testing")
     with app.test_client() as client:
         yield client
 

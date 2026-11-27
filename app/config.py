@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import os
 
-
 db = SQLAlchemy()
 
 
@@ -19,6 +18,14 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
 
+class TestingConfig(Config):
+    TESTING = True
+    # A dedicated Postgres DB (the models use ARRAY, which SQLite lacks).
+    # Tables are dropped after each test: never point this at a real database.
+    SQLALCHEMY_DATABASE_URI = os.environ.get("TEST_DATABASE_URL", "sqlite://")
+    JWT_SECRET_KEY = "test_secret_key"
+
+
 class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
@@ -32,6 +39,7 @@ class ProductionConfig(Config):
 
 config = {
     "development": DevelopmentConfig,
+    "testing": TestingConfig,
     "production": ProductionConfig,
     "default": DevelopmentConfig,
 }

@@ -1,8 +1,8 @@
 import json
 
 
-def test_list_users(client):
-    response = client.get("/users/")
+def test_list_users(client, admin_token):
+    response = client.get("/users/", headers={"Authorization": f"Bearer {admin_token}"})
     assert response.status_code == 200
     assert isinstance(json.loads(response.data), list)
 
@@ -57,13 +57,13 @@ def test_update_user(client, test_user, user_token):
     assert data["email"] == update_data["email"]
 
 
-def test_update_nonexistent_user(client, user_token):
+def test_update_nonexistent_user(client, admin_token):
     update_data = {"username": "updateduser", "email": "updated@example.com"}
     response = client.put(
         "/users/9999",
         data=json.dumps(update_data),
         content_type="application/json",
-        headers={"Authorization": f"Bearer {user_token}"},
+        headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert response.status_code == 404
 
@@ -78,8 +78,8 @@ def test_delete_user(client, test_user, user_token):
     assert response.status_code == 404
 
 
-def test_delete_nonexistent_user(client, user_token):
+def test_delete_nonexistent_user(client, admin_token):
     response = client.delete(
-        "/users/9999", headers={"Authorization": f"Bearer {user_token}"}
+        "/users/9999", headers={"Authorization": f"Bearer {admin_token}"}
     )
     assert response.status_code == 404

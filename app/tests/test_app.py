@@ -11,8 +11,9 @@ FAKE_API_KEY = "fake_api_key"
 
 
 @pytest.fixture(autouse=True)
-def set_env_vars(monkeypatch):
-    monkeypatch.setenv("EXCHANGE_RATE_API_KEY", "fake_api_key")
+def set_api_key(monkeypatch):
+    # The key is read at import time, so patch the module attribute, not the env.
+    monkeypatch.setattr("app.data_sources.currency.exchange_rate_api_key", FAKE_API_KEY)
 
 
 def test_create_app(client):
