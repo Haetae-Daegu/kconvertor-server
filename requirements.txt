@@ -18,10 +18,14 @@ botocore==1.44.12
     #   s3transfer
 certifi==2026.11.20
     # via requests
+cffi==2.1.1 ; platform_python_implementation != 'PyPy'
+    # via cryptography
 charset-normalizer==3.5.3
     # via requests
 click==8.5.1
     # via flask
+cryptography==50.0.2
+    # via google-auth
 discord-webhook==1.4.1
     # via kconvertor-server
 dnspython==2.8.0 ; python_full_version < '3.11'
@@ -57,6 +61,8 @@ geographiclib==2.1
     # via geopy
 geopy==2.5.0
     # via kconvertor-server
+google-auth==2.63.1
+    # via kconvertor-server
 greenlet==3.5.6 ; python_full_version < '3.11' and (platform_machine == 'AMD64' or platform_machine == 'WIN32' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'ppc64le' or platform_machine == 'win32' or platform_machine == 'x86_64')
     # via sqlalchemy
 idna==3.20
@@ -83,6 +89,14 @@ psycopg2-binary==2.9.11
     # via
     #   kconvertor-server
     #   sqlalchemy-serializer
+pyasn1==0.6.5
+    # via pyasn1-modules
+pyasn1-modules==0.4.2
+    # via google-auth
+pycparser==3.11 ; python_full_version < '3.11' and implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
+pycparser==3.12 ; python_full_version >= '3.11' and implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
 pydantic==2.14.4
     # via kconvertor-server
 pydantic-core==2.50.5
@@ -127,6 +141,7 @@ typing-extensions==4.16.0
     # via
     #   alembic
     #   beautifulsoup4
+    #   cryptography
     #   flask-cors
     #   pydantic
     #   pydantic-core

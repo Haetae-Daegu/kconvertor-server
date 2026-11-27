@@ -52,7 +52,73 @@
                         }
                     },
                     "400": {
+                        "description": "Missing fields, or the account uses Google sign-in (no password)"
+                    },
+                    "401": {
                         "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/google": {
+            "post": {
+                "summary": "Sign in or sign up with a Google ID token",
+                "description": "Verifies the token, then logs in the user matching google_sub, links an existing account by verified email, or creates a new user.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/GoogleLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "$ref": "#/definitions/UserLoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "credential is missing"
+                    },
+                    "401": {
+                        "description": "Invalid, expired or wrong-audience Google token"
+                    },
+                    "409": {
+                        "description": "Email already used by an account that cannot be linked (unverified email or another Google account)"
+                    },
+                    "503": {
+                        "description": "Google sign-in is not configured, or Google is unreachable"
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "summary": "Get new tokens from a refresh token",
+                "description": "The refresh token goes in the JSON body (refresh_token) or in the Authorization header.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/definitions/RefreshRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "New tokens",
+                        "schema": {
+                            "$ref": "#/definitions/TokenPair"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid refresh token"
                     }
                 }
             }
@@ -146,6 +212,40 @@
                     },
                     "400": {
                         "description": "Invalid input data"
+                    }
+                }
+            }
+        },
+        "/users/change-password": {
+            "post": {
+                "summary": "Change the current user's password, or set one for a Google-only account",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ChangePassword"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated"
+                    },
+                    "400": {
+                        "description": "Invalid data (new_password shorter than 6 characters)"
+                    },
+                    "401": {
+                        "description": "Not authenticated, or current password incorrect"
+                    },
+                    "404": {
+                        "description": "User not found"
                     }
                 }
             }
@@ -581,6 +681,19 @@
                 "updated_at": {
                     "type": "string",
                     "format": "date-time"
+                },
+                "auth_provider": {
+                    "type": "string",
+                    "enum": ["local", "google"],
+                    "description": "Only returned by /auth/me"
+                },
+                "avatar_url": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "has_password": {
+                    "type": "boolean",
+                    "description": "false for Google-only accounts. Only returned by /auth/me"
                 }
             }
         },
@@ -678,6 +791,19 @@
                 },
                 "email": {
                     "type": "string"
+                },
+                "auth_provider": {
+                    "type": "string",
+                    "enum": ["local", "google"],
+                    "description": "Only returned by /auth/me"
+                },
+                "avatar_url": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "has_password": {
+                    "type": "boolean",
+                    "description": "false for Google-only accounts. Only returned by /auth/me"
                 }
             }
         },
@@ -694,6 +820,9 @@
                     "type": "string"
                 },
                 "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
                     "type": "string"
                 }
             }
@@ -923,6 +1052,49 @@
                     "type": "string",
                     "enum": ["active", "archived"],
                     "description": "New status for the accommodation"
+                }
+            }
+        },
+        "GoogleLogin": {
+            "type": "object",
+            "required": ["credential"],
+            "properties": {
+                "credential": {
+                    "type": "string",
+                    "description": "Google ID token from Google Identity Services"
+                }
+            }
+        },
+        "RefreshRequest": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "TokenPair": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "ChangePassword": {
+            "type": "object",
+            "required": ["new_password"],
+            "properties": {
+                "current_password": {
+                    "type": "string",
+                    "description": "Required unless the account has no password yet (Google sign-in)"
+                },
+                "new_password": {
+                    "type": "string",
+                    "minLength": 6
                 }
             }
         }

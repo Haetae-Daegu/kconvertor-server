@@ -2,7 +2,9 @@ from flask import Blueprint, jsonify, request
 from app.services.alert_service import AlertType, send_alert
 from app.services.user_service import *
 from app.error import APIError
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import ChangePassword, UserCreate, UserUpdate
+from app.services.auth_service import check_user_password, hash_password
+from app.database.database import db
 from pydantic import ValidationError
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.security.security import role_required
@@ -54,6 +56,37 @@ def add_user():
     except Exception as e:
         send_alert("Create User", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error: {str(e)}").to_response()
+
+
+@user_bp.route("/change-password", methods=["POST"])
+@jwt_required()
+def change_password():
+    user = get_user_by_id(get_jwt_identity())
+    if not user:
+        return APIError(404, "Error: User not found").to_response()
+
+    try:
+        data = ChangePassword(**(request.get_json(silent=True) or {}))
+    except ValidationError as e:
+        return APIError(400, f"Error: {e.errors()}").to_response()
+
+    setting_first_password = user.password is None
+    if not setting_first_password:
+        if not data.current_password or not check_user_password(
+            user, data.current_password
+        ):
+            send_alert("Change Password", "Error: Invalid credentials", AlertType.INFO)
+            return APIError(401, "Current password is incorrect").to_response()
+
+    user.password = hash_password(data.new_password)
+    db.session.commit()
+    send_alert(
+        "Change Password",
+        f"User {user.username} | {user.id} "
+        + ("set a password" if setting_first_password else "changed their password"),
+        AlertType.SUCCESS,
+    )
+    return jsonify({"message": "Password updated"}), 200
 
 
 @user_bp.route("/<int:user_id>", methods=["PUT"])
