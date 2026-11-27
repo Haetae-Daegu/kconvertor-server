@@ -51,13 +51,15 @@ Side effects: Google Geocoding (on create/update of a listing), DO Spaces (image
 | POST | `/currency/` | – | `{from_currency, to_currency, amount}` → calls ExchangeRate-API |
 | GET | `/graph/` | – | Reads `data_script/historical_currency.txt` |
 | POST | `/auth/register` | – | `{email, username, password}` (bcrypt hashed) |
-| POST | `/auth/login` | – | Returns `access_token` and `refresh_token` |
-| POST | `/auth/refresh` | JWT | ⚠ see the known bugs below |
+| POST | `/auth/login` | – | Returns `access_token` and `refresh_token`. `400` for a Google-only account (no password) |
+| POST | `/auth/google` | – | `{credential: <Google ID token>}` → same payload as `/auth/login`. See "Google sign-in" below |
+| POST | `/auth/refresh` | refresh JWT | Refresh token in the body (`refresh_token`) or the `Authorization` header. Returns new `access_token` and `refresh_token` |
 | GET | `/auth/me` | JWT | Current user |
 | GET | `/users/` | admin | |
 | GET | `/users/<id>` | – | Public: the frontend shows host contact info |
 | POST | `/users/` | – | ⚠ stores the password **in plain text** |
 | PUT/DELETE | `/users/<id>` | JWT (self or admin) | |
+| POST | `/users/change-password` | JWT | `{current_password, new_password}`. `current_password` is not needed when the account has no password yet (Google sign-in) |
 | GET | `/accommodations/` | – | Active listings, newest first |
 | GET | `/accommodations/user` | JWT | Listings of the current user |
 | GET | `/accommodations/<id>` | – | |
@@ -67,6 +69,16 @@ Side effects: Google Geocoding (on create/update of a listing), DO Spaces (image
 | DELETE | `/accommodations/<id>` | JWT (owner) | |
 
 Swagger UI is at `http://localhost:5000/apidocs` whenever `FLASK_ENV` is not `production`.
+
+### Google sign-in
+
+The frontend gets a Google ID token (Google Identity Services button) and posts it to `/auth/google`. The server checks it with `google-auth` against `GOOGLE_CLIENT_ID`, then issues our own JWTs. Account matching:
+
+1. a user with the same `google_sub` → logged in;
+2. else a user with the same email (case-insensitive), **only if** Google says `email_verified` → the account is linked (`google_sub` set) and keeps its password and listings;
+3. else a new user is created: `password = NULL`, `auth_provider = "google"`, username from the Google name (or the email local part), with a numeric suffix if taken (`Jane Doe`, `Jane Doe2`…).
+
+An unverified email that matches an existing account, or an email already linked to another Google account, gets `409`. Invalid, expired or wrong-audience tokens get `401`. If `GOOGLE_CLIENT_ID` is not set the endpoint returns `503` (the audience check would otherwise be skipped).
 
 ## 3. Environment variables (`.env` at the repo root)
 
@@ -91,6 +103,7 @@ SPACE_REGION=lon1
 SPACE_NAME=accommodations
 SPACE_ACCESS_KEY=...
 SPACE_SECRET_KEY=...
+GOOGLE_CLIENT_ID=....apps.googleusercontent.com   # Google sign-in. Google Cloud Console → APIs & Services → Credentials → OAuth client ID, type "Web application". /auth/google returns 503 without it
 DISCORD_WEBHOOK_URL=...          # optional. Alerts are skipped if empty
 CLIENT_URL=https://haetaedaegu.vercel.app   # used in Discord messages
 ```
@@ -225,10 +238,10 @@ docker compose exec db psql -U $DB_USER $DB_NAME -c "UPDATE users SET role='admi
 
 | # | Where | Problem |
 |---|---|---|
-| 1 | `api/user.py` `POST /users/` and `PUT /users/<id>` with `password` | Password saved **in plain text**. `auth.py` login also falls back to a plain-text compare. |
-| 2 | `api/auth.py` `/auth/refresh` | Uses `verify_jwt_in_request()` without `refresh=True` and reads the header, while the frontend sends the refresh token in the body. Returns no `refresh_token`. In practice refresh fails and users get logged out. |
+| 1 | `api/user.py` `POST /users/` and `PUT /users/<id>` with `password` | Password saved **in plain text**. Login's plain-text fallback never matches with werkzeug 3 (`check_password_hash` returns `False` instead of raising), so these users **cannot log in**. `POST /users/change-password` hashes correctly. |
+| 2 | ~~`api/auth.py` `/auth/refresh`~~ | Fixed: reads the refresh token from the body or the header, returns a new `refresh_token`. Old refresh tokens stay valid until they expire (no revocation list). |
 | 3 | `api/user.py` `remove_user` | Compares `current_user_id` (str) with `user_id` (int), so non-admins can never delete themselves. The frontend calls `DELETE /users/me`, which matches no route. |
-| 4 | frontend `changePassword` | Calls `POST /users/change-password`, which does not exist. |
+| 4 | ~~frontend `changePassword`~~ | Fixed: `POST /users/change-password` now exists. |
 | 5 | `api/accommodations.py` `remove_accommodation` | `if not current_user and current_user.role...` is a logic bug. Admins cannot delete other users' listings. |
 | 6 | `api/currency.py` | `return APIError(...)` without `.to_response()`. A missing field gives a 500 (KeyError). |
 | 7 | `services/s3_service.py` | Uploaded key and returned URL may differ (`{folder}/{s3_path}` when `folder == SPACE_NAME`). Filenames are not made unique, so two `photo.jpg` uploads overwrite each other. Check this. |

@@ -44,6 +44,7 @@ FLASK_RUN_HOST=0.0.0.0
 FLASK_RUN_PORT=5000
 DATABASE_URL=postgresql://user:password@host/dbname
 EXCHANGE_RATE_API_KEY=your_api_key
+GOOGLE_CLIENT_ID=your_oauth_client_id.apps.googleusercontent.com
 ```
 
 Replace the placeholder values with your actual configuration.

@@ -16,6 +16,7 @@ dependencies = [
     "flask-sqlalchemy>=3.1.1",
     "flask-swagger-ui>=5.36.0",
     "geopy>=2.5.0",
+    "google-auth>=2.63.1",
     "psycopg2-binary>=2.9.11",
     "pydantic[email]>=2.14.4",
     "python-dotenv>=1.2.4",

@@ -33,3 +33,9 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class ChangePassword(BaseModel):
+    # Not required when the account has no password yet (Google sign-in).
+    current_password: Optional[str] = None
+    new_password: str = Field(..., min_length=6)
