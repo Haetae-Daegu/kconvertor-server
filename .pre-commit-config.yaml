@@ -1,0 +1,8 @@
+# Formats staged Python files with black on every commit.
+# Setup (once per clone): pip install pre-commit && pre-commit install
+# Keep the black version in sync with .github/workflows/python-app.yml.
+repos:
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.10.1
+    hooks:
+      - id: black
