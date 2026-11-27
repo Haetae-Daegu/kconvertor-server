@@ -38,4 +38,6 @@ jobs:
     - name: Lint with black
       run: uv run black . --check
     - name: Test with pytest
+      env:
+        TEST_DATABASE_URL: postgresql://test:test@localhost:5432/kconvertor_test
       run: uv run pytest

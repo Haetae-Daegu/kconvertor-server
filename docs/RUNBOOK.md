@@ -120,8 +120,8 @@ What `entrypoint.sh` does at every container start:
 
 ```bash
 cd kconvertor-server
-python3.10 -m venv .venv && source .venv/bin/activate   # the code targets 3.10
-pip install -r requirements.txt
+uv sync                                                  # creates .venv with Python 3.10
+source .venv/bin/activate                                # or prefix commands with `uv run`
 docker compose up -d db                                  # just Postgres
 # in .env: DATABASE_URL=postgresql://kconv:kconv@localhost:5432/kconvertor
 alembic upgrade head                                     # creates the tables
@@ -133,11 +133,11 @@ flask --app app.py run --debug
 The DB tests (`tests/`) need a **dedicated** Postgres database (the models use `ARRAY`, which SQLite lacks). Every table in it is dropped after each test, so never point `TEST_DATABASE_URL` at a real database. CI provides one through a `postgres:14` service.
 
 ```bash
-pip install black==26.10.1 pytest
+uv sync                                                         # installs dev tools too
 docker compose exec db createdb -U $DB_USER kconvertor_test     # once
 export TEST_DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/kconvertor_test
-black . --check
-pytest
+uv run black . --check
+uv run pytest
 ```
 
 Geocoding and S3 are mocked in the tests. No external API is called.
