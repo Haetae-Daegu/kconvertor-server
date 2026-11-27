@@ -10,6 +10,7 @@ import json
 from app.services.storage_factory import StorageFactory, StorageType
 from pathlib import Path
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from werkzeug.exceptions import Forbidden, NotFound
 import os
 
 client_url = os.getenv("CLIENT_URL")
@@ -17,6 +18,8 @@ env_path = Path(__file__).parent.parent / ".env"
 load_dotenv(env_path)
 
 accommodation_bp = Blueprint("accommodations", __name__, url_prefix="/accommodations")
+
+ALLOWED_STATUSES = {"active", "hidden", "booked", "archived"}
 
 
 @accommodation_bp.route("/", methods=["GET"])
@@ -129,6 +132,11 @@ def modify_accommodation(id):
     except ValidationError as e:
         send_alert("Modify Accommodation", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
+    except Forbidden as e:
+        send_alert("Modify Accommodation", f"{str(e)}", AlertType.INFO)
+        return APIError(
+            403, "Not authorized to update this accommodation"
+        ).to_response()
     except Exception as e:
         if "not found" in str(e).lower():
             send_alert(
@@ -161,6 +169,17 @@ def modify_accommodation_status(id):
             )
             return APIError(400, "Error: Invalid data").to_response()
 
+        if data.get("status") not in ALLOWED_STATUSES:
+            send_alert(
+                "Update Accommodation Status",
+                f"Error: Invalid status {data.get('status')!r}",
+                AlertType.INFO,
+            )
+            return APIError(
+                400,
+                f"Error: Invalid status. Allowed: {', '.join(sorted(ALLOWED_STATUSES))}",
+            ).to_response()
+
         accommodation = update_accommodation_status(id, data, user)
         send_alert(
             "Accommodation",
@@ -175,6 +194,14 @@ def modify_accommodation_status(id):
             403, "Not authorized to update this accommodation"
         ).to_response()
 
+    except NotFound:
+        send_alert(
+            "Update Accommodation Status",
+            f"Error: Accommodation not found",
+            AlertType.INFO,
+        )
+        return APIError(404, f"Error: Accommodation not found").to_response()
+
     except Exception as e:
         send_alert("Update Accommodation Status", f"Error: {str(e)}", AlertType.ERROR)
         return APIError(400, f"Error on server").to_response()
@@ -187,7 +214,7 @@ def remove_accommodation(id):
         current_user_id = get_jwt_identity()
         current_user = get_user_by_id(current_user_id)
 
-        if not current_user and current_user.role != "admin":
+        if not current_user:
             send_alert("Delete Accommodation", f"Error: Not authorized", AlertType.INFO)
             return APIError(404, "Not authorized").to_response()
 
@@ -198,6 +225,11 @@ def remove_accommodation(id):
         )
         delete_accommodation(id, current_user.id)
         return jsonify({"message": "Accommodation deleted"}), 200
+    except Forbidden as e:
+        send_alert("Delete Accommodation", f"{str(e)}", AlertType.INFO)
+        return APIError(
+            403, "Not authorized to delete this accommodation"
+        ).to_response()
     except Exception as e:
         if "not found" in str(e).lower():
             send_alert(

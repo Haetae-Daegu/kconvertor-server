@@ -16,10 +16,10 @@ def role_required(roles):
             user = get_user_by_id(current_user_id)
 
             if not user:
-                raise APIError("User not found", 404)
+                raise APIError(404, "User not found")
 
             if user.role not in roles:
-                raise APIError("Insufficient permissions", 403)
+                raise APIError(403, "Insufficient permissions")
 
             return fn(*args, **kwargs)
 

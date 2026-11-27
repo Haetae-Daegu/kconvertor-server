@@ -111,7 +111,7 @@ def remove_user(user_id):
         send_alert("Remove User", f"Error: User not found", AlertType.INFO)
         return APIError(404, f"Error: User not found").to_response()
 
-    if current_user.role != "admin" and current_user_id != user_id:
+    if current_user.role != "admin" and int(current_user_id) != user_id:
         send_alert("Remove User", f"Error: Insufficient permissions", AlertType.ERROR)
         return APIError(403, f"Error: Insufficient permissions").to_response()
 

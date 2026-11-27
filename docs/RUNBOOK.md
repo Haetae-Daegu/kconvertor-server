@@ -130,11 +130,17 @@ flask --app app.py run --debug
 
 ### Tests and lint (the same checks CI runs in `.github/workflows/python-app.yml`)
 
+The DB tests (`tests/`) need a **dedicated** Postgres database (the models use `ARRAY`, which SQLite lacks). Every table in it is dropped after each test, so never point `TEST_DATABASE_URL` at a real database. CI provides one through a `postgres:14` service.
+
 ```bash
-pip install black pytest
+pip install black==26.10.1 pytest
+docker compose exec db createdb -U $DB_USER kconvertor_test     # once
+export TEST_DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/kconvertor_test
 black . --check
 pytest
 ```
+
+Geocoding and S3 are mocked in the tests. No external API is called.
 
 ## 5. Production (DigitalOcean droplet)
 
