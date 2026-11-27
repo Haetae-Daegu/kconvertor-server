@@ -1,8 +1,29 @@
-# Formats staged Python files with black on every commit.
-# Setup (once per clone): pip install pre-commit && pre-commit install
-# Keep the black version in sync with .github/workflows/python-app.yml.
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 26.10.1
     hooks:
       - id: black
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.10
+    hooks:
+      - id: uv-lock
+      - id: uv-export
+        args: ["--frozen", "--no-dev", "--no-hashes", "--no-emit-project", "--output-file=requirements.txt"]
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.20.1
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

@@ -29,4 +29,4 @@ echo "Applying migrations"
 alembic upgrade head
 
 echo "Starting Flask application..."
-flask run --host=0.0.0.0 
+flask run --host=0.0.0.0

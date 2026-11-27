@@ -14,14 +14,25 @@ Using [ExchangeRateAPI](https://www.exchangerate-api.com/)
 
 ### 2. Install dependencies
 
+This project uses [uv](https://docs.astral.sh/uv/) to manage Python and dependencies.
+
 ```bash
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh  # install uv if needed
+uv sync
 ```
 
-Dependencies are updated regularly, so you may need to update them:
+Add a dependency with `uv add <package>` (or `uv add --dev <package>` for dev tools).
+`requirements.txt` is generated from `uv.lock` by a pre-commit hook: do not edit it by hand.
+
+### Git hooks (pre-commit)
+
 ```bash
-pip install --upgrade -r requirements.txt
+uv run pre-commit install
 ```
+
+On each commit, the hooks reformat the code with black, keep `uv.lock` and `requirements.txt` in sync,
+and check that the commit message follows [Conventional Commits](https://www.conventionalcommits.org/) via commitizen
+(e.g. `feat: add login route`). Use `uv run cz commit` for a guided commit message.
 
 ### 3. Configure environment variables
 
@@ -53,7 +64,7 @@ alembic upgrade head
 ### 5. Start the server
 
 ```bash
-  flask run
+  uv run flask run
 ```
 
 ## Run with Docker
